@@ -126,7 +126,7 @@ export function formatErrorMessage(error: unknown): string {
  * 에러 로깅 함수
  * 향후 Sentry 등 에러 추적 서비스와 연동 가능
  */
-export function logError(error: unknown, context?: Record<string, any>) {
+export function logError(error: unknown, context?: Record<string, unknown>) {
   // 개발 환경에서는 콘솔에 출력
   if (process.env.NODE_ENV === 'development') {
     console.error('Error:', error);

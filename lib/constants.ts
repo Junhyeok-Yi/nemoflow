@@ -55,13 +55,13 @@ export const API_ENDPOINTS = {
 /**
  * 카테고리 상수 (타입 안전성 보장)
  */
-export const CATEGORIES = ['To-Do', '메모', '아이디어'] as const;
+export const CATEGORIES = ['To-Do', '메모', '아이디어', '회의록'] as const;
 export type Category = typeof CATEGORIES[number];
 
 /**
  * 색상 상수 (타입 안전성 보장)
  */
-export const COLORS = ['yellow', 'pink', 'blue', 'green'] as const;
+export const COLORS = ['yellow', 'pink', 'blue', 'green', 'purple'] as const;
 export type Color = typeof COLORS[number];
 
 /**
@@ -71,6 +71,7 @@ export const CATEGORY_COLORS: Record<Category, Color> = {
   'To-Do': 'pink',
   '아이디어': 'blue',
   '메모': 'yellow',
+  '회의록': 'purple',
 };
 
 /**
@@ -105,6 +106,12 @@ export const COLOR_CLASSES: Record<Color, {
     gradient: 'bg-gradient-to-br from-green-200 to-green-300',
     text: 'text-green-800',
     border: 'border-green-300',
+  },
+  purple: {
+    background: 'bg-purple-200',
+    gradient: 'bg-gradient-to-br from-purple-200 to-purple-300',
+    text: 'text-purple-800',
+    border: 'border-purple-300',
   },
 };
 

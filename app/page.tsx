@@ -12,6 +12,7 @@ import {
   checkSupabaseConnection 
 } from '@/lib/supabase-api';
 import { supabase } from '@/lib/supabase';
+import { generateMeetingTitle } from '@/lib/meeting-title-generator';
 import StickyNoteInput from '@/components/StickyNoteInput';
 import AffinityDiagram from '@/components/AffinityDiagram';
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +25,10 @@ export default function Home() {
   const [isSupabaseConnected, setIsSupabaseConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  
+  // 회의록 모드 상태
+  const [isMeetingMode, setIsMeetingMode] = useState(false);
+  const [currentMeetingId, setCurrentMeetingId] = useState<string | null>(null);
 
   // 앱 초기화
   useEffect(() => {
@@ -162,11 +167,14 @@ export default function Home() {
         const newNote: StickyNote = {
           id: crypto.randomUUID(),
           content,
-          category,
-          color: ['yellow', 'pink', 'blue', 'green'][Math.floor(Math.random() * 4)] as 'yellow' | 'pink' | 'blue' | 'green',
+          category: isMeetingMode ? '회의록' : category,
+          color: ['yellow', 'pink', 'blue', 'green', 'purple'][Math.floor(Math.random() * 5)] as 'yellow' | 'pink' | 'blue' | 'green' | 'purple',
           createdAt: now,
           updatedAt: now,
-          isCompleted: false
+          isCompleted: false,
+          // 회의록 모드일 때 회의 정보 추가
+          meetingId: isMeetingMode && currentMeetingId ? currentMeetingId : undefined,
+          isMeetingMode: isMeetingMode,
         };
         
         const updatedNotes = [newNote, ...notes];
@@ -242,6 +250,51 @@ export default function Home() {
     }
   };
 
+  // 회의록 모드 토글
+  const toggleMeetingMode = async () => {
+    if (isMeetingMode) {
+      // 회의 종료: 제목 생성
+      if (currentMeetingId) {
+        const title = await generateMeetingTitle(currentMeetingId, notes);
+        
+        // 해당 회의의 모든 메모에 제목 추가
+        const meetingNotes = notes.filter(note => note.meetingId === currentMeetingId);
+        for (const note of meetingNotes) {
+          const updatedNote = { ...note, meetingTitle: title };
+          if (isSupabaseConnected) {
+            await updateNoteInSupabase(updatedNote);
+          }
+        }
+        
+        // 로컬에도 반영
+        const updatedNotes = notes.map(note => 
+          note.meetingId === currentMeetingId 
+            ? { ...note, meetingTitle: title }
+            : note
+        );
+        setNotes(updatedNotes);
+        
+        if (!isSupabaseConnected) {
+          localStorage.setItem('sticky-notes', JSON.stringify(updatedNotes));
+        }
+        
+        toast({
+          title: "회의 종료",
+          description: `"${title}" 제목으로 저장되었습니다.`,
+        });
+      }
+      setCurrentMeetingId(null);
+    } else {
+      // 회의 시작: 새 ID 생성
+      setCurrentMeetingId(crypto.randomUUID());
+      toast({
+        title: "회의록 모드 시작",
+        description: "이제 작성하는 모든 메모가 하나의 회의로 그룹화됩니다.",
+      });
+    }
+    setIsMeetingMode(!isMeetingMode);
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -261,6 +314,8 @@ export default function Home() {
           onSwitchToAffinity={() => setViewMode('diagram')}
           onComplete={toggleNoteCompletion}
           isClassifying={isClassifying}
+          isMeetingMode={isMeetingMode}
+          onToggleMeetingMode={toggleMeetingMode}
         />
       ) : (
         <AffinityDiagram

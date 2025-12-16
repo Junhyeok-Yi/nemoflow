@@ -13,32 +13,41 @@ export interface Database {
         Row: {
           id: string
           content: string
-          category: 'To-Do' | '메모' | '아이디어'
-          color: 'yellow' | 'pink' | 'blue' | 'green'
+          category: 'To-Do' | '메모' | '아이디어' | '회의록'
+          color: 'yellow' | 'pink' | 'blue' | 'green' | 'purple'
           is_completed: boolean
           created_at: string
           updated_at: string
           user_id: string | null
+          meeting_id: string | null
+          meeting_title: string | null
+          is_meeting_mode: boolean | null
         }
         Insert: {
           id?: string
           content: string
-          category: 'To-Do' | '메모' | '아이디어'
-          color: 'yellow' | 'pink' | 'blue' | 'green'
+          category: 'To-Do' | '메모' | '아이디어' | '회의록'
+          color: 'yellow' | 'pink' | 'blue' | 'green' | 'purple'
           is_completed?: boolean
           created_at?: string
           updated_at?: string
           user_id?: string | null
+          meeting_id?: string | null
+          meeting_title?: string | null
+          is_meeting_mode?: boolean | null
         }
         Update: {
           id?: string
           content?: string
-          category?: 'To-Do' | '메모' | '아이디어'
-          color?: 'yellow' | 'pink' | 'blue' | 'green'
+          category?: 'To-Do' | '메모' | '아이디어' | '회의록'
+          color?: 'yellow' | 'pink' | 'blue' | 'green' | 'purple'
           is_completed?: boolean
           created_at?: string
           updated_at?: string
           user_id?: string | null
+          meeting_id?: string | null
+          meeting_title?: string | null
+          is_meeting_mode?: boolean | null
         }
         Relationships: []
       }

@@ -1,12 +1,20 @@
+// 카테고리 타입 정의
+export type Category = 'To-Do' | '메모' | '아이디어' | '회의록';
+
 // 포스트잇 관련 타입 정의
 export interface StickyNote {
   id: string;
   content: string;
-  category: 'To-Do' | '메모' | '아이디어';
-  color: 'yellow' | 'pink' | 'blue' | 'green';
+  category: Category;
+  color: 'yellow' | 'pink' | 'blue' | 'green' | 'purple';
   createdAt: Date;
   updatedAt: Date;
   isCompleted?: boolean; // To-Do 아이템의 완료 상태
+  
+  // 회의록 관련 필드
+  meetingId?: string;           // 회의 그룹 ID
+  meetingTitle?: string;        // AI가 생성한 회의 제목
+  isMeetingMode?: boolean;      // 회의록 모드에서 작성되었는지
 }
 
 // 뷰 모드 타입

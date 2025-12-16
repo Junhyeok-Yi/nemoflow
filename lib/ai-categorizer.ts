@@ -1,10 +1,10 @@
 /**
- * 🧠 AI 기반 콘텐츠 분류 시스템 v2.0
- * 개선된 통합 분류 로직 + 컨텍스트 분석 + 밸런스 최적화
+ * 🧠 AI 기반 콘텐츠 분류 시스템 v3.0
+ * 개선된 통합 분류 로직 + 컨텍스트 분석 + 밸런스 최적화 + 회의록 지원
  */
 
 // 카테고리 타입 정의
-export type Category = 'To-Do' | '메모' | '아이디어';
+export type Category = 'To-Do' | '메모' | '아이디어' | '회의록';
 
 // 📝 강화된 To-Do 패턴 정의
 const TODO_PATTERNS = {
@@ -128,6 +128,34 @@ const MEMO_PATTERNS = {
   ]
 };
 
+// 🎤 회의록 패턴 정의
+const MEETING_PATTERNS = {
+  // 🎙️ 회의 관련 키워드
+  keywords: [
+    { keyword: '회의', weight: 5 },
+    { keyword: '미팅', weight: 5 },
+    { keyword: '논의', weight: 4 },
+    { keyword: '안건', weight: 5 },
+    { keyword: '결정', weight: 4 },
+    { keyword: '의견', weight: 3 },
+    { keyword: '발표', weight: 4 },
+    { keyword: '보고', weight: 4 },
+    { keyword: '공유', weight: 3 },
+    { keyword: '검토', weight: 3 },
+    { keyword: '협의', weight: 4 },
+    { keyword: '회의록', weight: 5 },
+  ],
+  
+  // 🗣️ 회의 진행 패턴
+  patterns: [
+    { pattern: /(회의|미팅)\s*(시작|종료|진행)/, weight: 5, description: '회의 진행' },
+    { pattern: /(.+)(말씀|의견|발표|보고)/, weight: 4, description: '발언' },
+    { pattern: /(안건|주제|논의)\s*(.+)/, weight: 4, description: '회의 주제' },
+    { pattern: /(결정|합의|동의)/, weight: 4, description: '회의 결정사항' },
+    { pattern: /(.+님|팀장|부장|과장|대리).+(말씀|의견|발표)/, weight: 5, description: '참석자 발언' },
+  ]
+};
+
 /**
  * 🧠 컨텍스트 분석 기능
  */
@@ -168,6 +196,7 @@ export function categorizeByKeywords(content: string): Category {
   let todoScore = 0;
   let ideaScore = 0;
   let memoScore = 0;
+  let meetingScore = 0;
   
   // === 1. To-Do 점수 계산 ===
   
@@ -212,7 +241,7 @@ export function categorizeByKeywords(content: string): Category {
   }
   
   // 🔍 문장 패턴 체크 (컨텍스트 고려)
-  TODO_PATTERNS.sentencePatterns.forEach(({ pattern, weight, description }) => {
+  TODO_PATTERNS.sentencePatterns.forEach(({ pattern, weight }) => {
     if (pattern.test(text) && !context.isNegative && !context.isPastTense) {
       todoScore += weight;
     }
@@ -228,7 +257,7 @@ export function categorizeByKeywords(content: string): Category {
   });
   
   // 🤔 창의적 사고 패턴 (질문형 가중치)
-  IDEA_PATTERNS.patterns.forEach(({ pattern, weight, description }) => {
+  IDEA_PATTERNS.patterns.forEach(({ pattern, weight }) => {
     if (pattern.test(text)) {
       ideaScore += context.isQuestion ? weight * 1.3 : weight;
     }
@@ -244,13 +273,29 @@ export function categorizeByKeywords(content: string): Category {
   });
   
   // 📋 정보성 패턴 (사실 진술 가중치)
-  MEMO_PATTERNS.patterns.forEach(({ pattern, weight, description }) => {
+  MEMO_PATTERNS.patterns.forEach(({ pattern, weight }) => {
     if (pattern.test(text)) {
       memoScore += context.isFactual ? weight * 1.2 : weight;
     }
   });
   
-  // === 4. 컨텍스트 기반 조정 ===
+  // === 4. 회의록 점수 계산 ===
+  
+  // 🎤 회의 관련 키워드
+  MEETING_PATTERNS.keywords.forEach(({ keyword, weight }) => {
+    if (text.includes(keyword)) {
+      meetingScore += weight;
+    }
+  });
+  
+  // 🗣️ 회의 진행 패턴
+  MEETING_PATTERNS.patterns.forEach(({ pattern, weight }) => {
+    if (pattern.test(text)) {
+      meetingScore += weight;
+    }
+  });
+  
+  // === 5. 컨텍스트 기반 조정 ===
   
   // 🚫 부정적 표현 시 To-Do 점수 감소
   if (context.isNegative) {
@@ -273,17 +318,14 @@ export function categorizeByKeywords(content: string): Category {
     todoScore *= 0.7;
   }
   
-  // === 5. 디버깅 로그 (개선된 상세 정보) ===
+  // === 6. 디버깅 로그 (개선된 상세 정보) ===
   console.log(`📊 분류 분석: "${content}"`);
   console.log(`🔍 컨텍스트:`, context);
-  console.log(`📈 점수 - To-Do: ${todoScore.toFixed(1)}, 아이디어: ${ideaScore.toFixed(1)}, 메모: ${memoScore.toFixed(1)}`);
+  console.log(`📈 점수 - To-Do: ${todoScore.toFixed(1)}, 아이디어: ${ideaScore.toFixed(1)}, 메모: ${memoScore.toFixed(1)}, 회의록: ${meetingScore.toFixed(1)}`);
   
-  // === 6. 밸런스 최적화된 분류 결정 ===
-  const maxScore = Math.max(todoScore, ideaScore, memoScore);
+  // === 7. 밸런스 최적화된 분류 결정 ===
+  const maxScore = Math.max(todoScore, ideaScore, memoScore, meetingScore);
   const minThreshold = 2; // 최소 임계값 낮춤
-  
-  // 점수 차이가 크지 않으면 컨텍스트로 추가 판단
-  const scoreDifference = maxScore - Math.min(todoScore, ideaScore, memoScore);
   
   if (maxScore < minThreshold) {
     // 모든 점수가 낮으면 컨텍스트로 판단
@@ -300,7 +342,10 @@ export function categorizeByKeywords(content: string): Category {
   }
   
   // 명확한 승자가 있는 경우
-  if (todoScore === maxScore && todoScore >= minThreshold) {
+  if (meetingScore === maxScore && meetingScore >= minThreshold) {
+    console.log('🎤 최종 분류: 회의록');
+    return '회의록';
+  } else if (todoScore === maxScore && todoScore >= minThreshold) {
     console.log('✅ 최종 분류: To-Do');
     return 'To-Do';
   } else if (ideaScore === maxScore && ideaScore >= minThreshold) {
@@ -386,23 +431,25 @@ export async function categorizeContent(content: string): Promise<Category> {
 /**
  * 카테고리별 색상 반환
  */
-export function getCategoryColor(category: Category): 'yellow' | 'pink' | 'blue' | 'green' {
+export function getCategoryColor(category: Category): 'yellow' | 'pink' | 'blue' | 'green' | 'purple' {
   const colorMap = {
     'To-Do': 'pink',
     '아이디어': 'blue',
-    '메모': 'yellow'
+    '메모': 'yellow',
+    '회의록': 'purple'
   };
-  return colorMap[category] as 'yellow' | 'pink' | 'blue' | 'green';
+  return colorMap[category] as 'yellow' | 'pink' | 'blue' | 'green' | 'purple';
 }
 
 /**
  * 카테고리 우선순위 반환 (정렬용)
  */
 export function getCategoryPriority(category: Category): number {
-  const priorityMap = {
+  const priorityMap: Record<Category, number> = {
     'To-Do': 1,
     '아이디어': 2,
-    '메모': 3
+    '메모': 3,
+    '회의록': 4
   };
   return priorityMap[category] || 99;
 }

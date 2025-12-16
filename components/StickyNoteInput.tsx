@@ -1,10 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { StickyNote } from '@/lib/types';
+import { StickyNote, Category } from '@/lib/types';
 import { getCategoryColor, categorizeForPreview } from '@/lib/ai-categorizer';
 import { useGestures } from '@/hooks/useGestures';
+import { useDebounce } from '@/hooks/useDebounce';
+import { saveFinetuningData } from '@/lib/finetuning';
 import { Check, X, Brain } from 'lucide-react';
+import { CategoryTagSelector } from './CategoryTagSelector';
 
 interface StickyNoteInputProps {
   onSave: (content: string) => void;
@@ -14,6 +17,8 @@ interface StickyNoteInputProps {
   currentNote: StickyNote | null;
   setCurrentNote: (note: StickyNote | null) => void;
   isClassifying?: boolean; // AI 분류 중 상태
+  isMeetingMode?: boolean; // 회의록 모드 여부
+  onToggleMeetingMode?: () => void; // 회의록 모드 토글
 }
 
 export default function StickyNoteInput({
@@ -23,19 +28,26 @@ export default function StickyNoteInput({
   onSwitchToAffinity,
   currentNote,
   setCurrentNote,
-  isClassifying = false
+  isClassifying = false,
+  isMeetingMode = false,
+  onToggleMeetingMode
 }: StickyNoteInputProps) {
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(true);
   const [feedback, setFeedback] = useState<'save' | 'delete' | 'classifying' | null>(null);
+  
+  // AI 예측 카테고리 상태
+  const [predictedCategory, setPredictedCategory] = useState<Category>('메모');
+  const [userSelectedCategory, setUserSelectedCategory] = useState<Category | null>(null);
   // 초기 색상을 currentNote에 따라 즉시 결정
   const getInitialColor = () => {
     if (currentNote) {
-      const colorMap = {
+      const colorMap: Record<string, string> = {
         yellow: 'bg-yellow-200',
         pink: 'bg-pink-200',
         blue: 'bg-blue-200',
-        green: 'bg-green-200'
+        green: 'bg-green-200',
+        purple: 'bg-purple-200'
       };
       return colorMap[currentNote.color];
     }
@@ -115,26 +127,36 @@ export default function StickyNoteInput({
     }
   }, [content, isMounted]);
 
-  // 🎨 실시간 색상 미리보기 (통합 분류 시스템 사용) - 새 메모일 때만
+  // 디바운스된 콘텐츠로 AI 예측 (300ms 지연)
+  const debouncedContent = useDebounce(content, 300);
+
+  // 🎨 실시간 AI 예측 및 색상 미리보기 - 새 메모일 때만
   useEffect(() => {
-    if (content.trim() && isMounted && !currentNote) {
-      // 🚀 새로운 통합 분류 시스템 사용 (일관성 보장)
-      const previewCategory = categorizeForPreview(content);
+    if (debouncedContent.trim() && isMounted && !currentNote) {
+      // 🚀 AI 예측 수행
+      const predicted = categorizeForPreview(debouncedContent);
+      setPredictedCategory(predicted);
       
-      const previewColor = getCategoryColor(previewCategory);
+      // 사용자가 수동으로 선택하지 않았으면 AI 예측 사용
+      const categoryToUse = userSelectedCategory || predicted;
+      const previewColor = getCategoryColor(categoryToUse);
+      
       const colorMap = {
         yellow: 'bg-yellow-200',
         pink: 'bg-pink-200',
         blue: 'bg-blue-200',
-        green: 'bg-green-200'
+        green: 'bg-green-200',
+        purple: 'bg-purple-200'
       };
       
       setStickyColor(colorMap[previewColor]);
-    } else if (!content.trim() && !currentNote) {
-      // 빈 내용이면 기본 노란색 (새 메모일 때만)
+    } else if (!debouncedContent.trim() && !currentNote) {
+      // 빈 내용이면 기본 노란색 + 상태 초기화
       setStickyColor('bg-yellow-200');
+      setPredictedCategory('메모');
+      setUserSelectedCategory(null);
     }
-  }, [content, isMounted, currentNote]);
+  }, [debouncedContent, isMounted, currentNote, userSelectedCategory]);
 
   // 편집 모드일 때 포커스 및 키보드 활성화
   useEffect(() => {
@@ -149,11 +171,12 @@ export default function StickyNoteInput({
       setContent(currentNote.content);
       setIsEditing(true);
       // 기존 노트의 색상을 즉시 설정 (깜빡임 방지)
-      const colorMap = {
+      const colorMap: Record<string, string> = {
         yellow: 'bg-yellow-200',
         pink: 'bg-pink-200',
         blue: 'bg-blue-200',
-        green: 'bg-green-200'
+        green: 'bg-green-200',
+        purple: 'bg-purple-200'
       };
       // 즉시 색상 설정으로 깜빡임 방지
       setStickyColor(colorMap[currentNote.color]);
@@ -162,6 +185,9 @@ export default function StickyNoteInput({
       setIsEditing(true);
       // 새 메모는 기본 노란색으로 시작
       setStickyColor('bg-yellow-200');
+      // AI 예측 상태도 초기화
+      setPredictedCategory('메모');
+      setUserSelectedCategory(null);
     }
   }, [currentNote]);
 
@@ -185,8 +211,20 @@ export default function StickyNoteInput({
     }
   }, [feedback]);
 
-
-
+  // 사용자가 카테고리를 수정했을 때 파인튜닝 데이터 저장
+  const handleCategoryChange = (newCategory: Category) => {
+    setUserSelectedCategory(newCategory);
+    
+    // AI 예측과 다른 경우에만 파인튜닝 데이터 저장
+    if (newCategory !== predictedCategory && content.trim()) {
+      saveFinetuningData({
+        originalContent: content.trim(),
+        aiPredicted: predictedCategory,
+        userCorrected: newCategory,
+        timestamp: new Date()
+      });
+    }
+  };
 
 
   const handleSave = () => {
@@ -196,6 +234,10 @@ export default function StickyNoteInput({
       setContent('');
       setCurrentNote(null);
       setIsEditing(true);
+      
+      // AI 예측 상태 초기화
+      setUserSelectedCategory(null);
+      setPredictedCategory('메모');
     }
   };
 
@@ -430,7 +472,28 @@ export default function StickyNoteInput({
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-5 bg-gray-50 overscroll-none">
+    <div className="min-h-screen flex items-center justify-center p-5 bg-gray-50 overscroll-none relative">
+      {/* 회의록 모드 토글 (좌측 상단) */}
+      {onToggleMeetingMode && (
+        <div className="fixed top-6 left-6 z-30">
+          <label className="flex items-center gap-2 px-4 py-2 bg-white/90 backdrop-blur-sm rounded-lg shadow-md cursor-pointer hover:shadow-lg transition-shadow border border-gray-200">
+            <input
+              type="checkbox"
+              checked={isMeetingMode}
+              onChange={onToggleMeetingMode}
+              className="w-4 h-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+            />
+            <span className="text-sm font-medium">
+              {isMeetingMode ? (
+                <span className="text-purple-700">🎤 회의록 모드 ON</span>
+              ) : (
+                <span className="text-gray-700">회의록 모드</span>
+              )}
+            </span>
+          </label>
+        </div>
+      )}
+      
       <div
         ref={containerRef}
         className={`relative w-full max-w-sm aspect-square ${stickyColor} rounded-lg shadow-lg transform cursor-pointer touch-none ${
@@ -460,6 +523,17 @@ export default function StickyNoteInput({
           maxLength={100}
           disabled={isClassifying}
         />
+        
+        {/* AI 예측 태그 - 메모 작성 중일 때만 표시 */}
+        {content.trim() && !currentNote && (
+          <div className="absolute bottom-8 left-3 z-10">
+            <CategoryTagSelector
+              predictedCategory={userSelectedCategory || predictedCategory}
+              onSelect={handleCategoryChange}
+              disabled={isClassifying}
+            />
+          </div>
+        )}
         
         {/* 글자 수 표시 */}
         <div className="absolute bottom-1 right-2 text-xs text-gray-500">

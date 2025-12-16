@@ -382,6 +382,7 @@ export function testSmartTopicExtractor(): void {
   ];
   
   console.log('\n📊 테스트 결과:');
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   testCases.forEach((testCase, index) => {
     const result = classifyTopicSmart(testCase.content, testMemos);
     const isCorrect = result.topic === testCase.expected;

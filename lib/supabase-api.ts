@@ -37,6 +37,9 @@ export async function fetchNotesFromSupabase(): Promise<StickyNote[]> {
       createdAt: new Date(dbNote.created_at),
       updatedAt: new Date(dbNote.updated_at),
       isCompleted: dbNote.is_completed || false,
+      meetingId: dbNote.meeting_id || undefined,
+      meetingTitle: dbNote.meeting_title || undefined,
+      isMeetingMode: dbNote.is_meeting_mode || undefined,
     }))
   } catch (error) {
     console.error('Supabase 연결 실패:', error)
@@ -58,6 +61,9 @@ export async function saveNoteToSupabase(note: StickyNote): Promise<boolean> {
       is_completed: note.isCompleted || false,
       created_at: note.createdAt.toISOString(),
       updated_at: note.updatedAt.toISOString(),
+      meeting_id: note.meetingId || null,
+      meeting_title: note.meetingTitle || null,
+      is_meeting_mode: note.isMeetingMode || null,
     }
 
     const { error } = await supabase
@@ -90,6 +96,9 @@ export async function updateNoteInSupabase(note: StickyNote): Promise<boolean> {
       color: note.color,
       is_completed: note.isCompleted || false,
       updated_at: note.updatedAt.toISOString(),
+      meeting_id: note.meetingId || null,
+      meeting_title: note.meetingTitle || null,
+      is_meeting_mode: note.isMeetingMode || null,
     }
 
     const { error } = await supabase
