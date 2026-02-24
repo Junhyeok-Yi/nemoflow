@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { StickyNote } from '@/lib/types';
 import { getCategoryPriority } from '@/lib/ai-categorizer';
 import { classifyTopicSmart } from '@/lib/smart-topic-extractor';
@@ -33,6 +33,12 @@ export default function AffinityDiagram({
 }: AffinityDiagramProps) {
   const [sortType, setSortType] = useState<SortType>('category');
   const [actionFeedback, setActionFeedback] = useState<{ [key: string]: 'complete' | 'delete' | null }>({});
+  const scrollContainerRef = useRef<HTMLElement | null>(null);
+  const scrollPositionsRef = useRef<Record<SortType, number>>({
+    category: 0,
+    topic: 0,
+    time: 0,
+  });
   
   const handleNoteClick = (note: StickyNote, e: React.MouseEvent<HTMLElement>) => {
     // 더보기 메뉴 클릭 시 이벤트 전파 중단
@@ -230,6 +236,21 @@ export default function AffinityDiagram({
 
   const { groups, groupedNotes, isTimeline } = getSortedNotesAndGroups();
 
+  const switchTab = (next: SortType) => {
+    const container = scrollContainerRef.current;
+    if (container) {
+      scrollPositionsRef.current[sortType] = container.scrollTop;
+    }
+    setSortType(next);
+  };
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const nextTop = scrollPositionsRef.current[sortType] ?? 0;
+    container.scrollTo({ top: nextTop, behavior: 'auto' });
+  }, [sortType]);
+
   const renderNoteCard = (note: StickyNote, group: string, mobile = false) => (
     <div
       key={note.id}
@@ -325,7 +346,7 @@ export default function AffinityDiagram({
           {/* 탭 네비게이션 */}
           <nav className="grid grid-cols-3 gap-2 bg-gray-100 rounded-xl p-2 w-full">
             <button
-              onClick={() => setSortType('category')}
+              onClick={() => switchTab('category')}
               className={`touch-manipulation px-3 md:px-5 py-3.5 md:py-3.5 rounded-lg transition-all text-sm font-medium text-center ${
                 sortType === 'category'
                   ? 'bg-white text-gray-900 shadow-sm'
@@ -335,7 +356,7 @@ export default function AffinityDiagram({
               Categories
             </button>
             <button
-              onClick={() => setSortType('topic')}
+              onClick={() => switchTab('topic')}
               className={`touch-manipulation px-3 md:px-5 py-3.5 md:py-3.5 rounded-lg transition-all text-sm font-medium text-center ${
                 sortType === 'topic'
                   ? 'bg-white text-gray-900 shadow-sm'
@@ -345,7 +366,7 @@ export default function AffinityDiagram({
               Topics
             </button>
             <button
-              onClick={() => setSortType('time')}
+              onClick={() => switchTab('time')}
               className={`touch-manipulation px-3 md:px-5 py-3.5 md:py-3.5 rounded-lg transition-all text-sm font-medium text-center ${
                 sortType === 'time'
                   ? 'bg-white text-gray-900 shadow-sm'
@@ -375,7 +396,13 @@ export default function AffinityDiagram({
           </div>
         </div>
       ) : (
-        <main className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-6 h-[calc(100vh-140px)] md:h-auto overflow-y-auto md:overflow-visible touch-pan-y snap-y snap-proximity md:snap-none">
+        <main
+          ref={scrollContainerRef}
+          onScroll={(e) => {
+            scrollPositionsRef.current[sortType] = e.currentTarget.scrollTop;
+          }}
+          className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-6 h-[calc(100vh-140px)] md:h-auto overflow-y-auto md:overflow-visible touch-pan-y snap-y snap-proximity md:snap-none"
+        >
           {groups.map((group) => {
             const groupNotes = groupedNotes[group];
             const activeCount = groupNotes.filter(note => !note.isCompleted).length;
