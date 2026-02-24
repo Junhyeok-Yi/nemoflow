@@ -443,7 +443,7 @@ export default function AffinityDiagram({
                 </div>
 
                 {/* Desktop: existing grid */}
-                <div className="hidden md:grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+                <div className="hidden md:grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-4 gap-4">
                   {groupNotes.map((note) => renderNoteCard(note, group, false))}
                 </div>
 
