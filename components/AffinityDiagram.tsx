@@ -294,8 +294,8 @@ export default function AffinityDiagram({
         </div>
 
         {note.isCompleted && (
-          <div className="absolute inset-0 bg-black/60 rounded-2xl flex items-center justify-center z-10 backdrop-blur-sm transition-opacity duration-200 group-hover:opacity-0">
-            <div className="text-center">
+          <div className="absolute inset-0 bg-black/60 group-hover:bg-black/28 rounded-2xl flex items-center justify-center z-10 backdrop-blur-[1.5px] group-hover:backdrop-blur-0 transition-all duration-200">
+            <div className="text-center opacity-95 group-hover:opacity-85">
               <Check className="w-8 h-8 text-green-400 mx-auto mb-2" />
               <span className="text-white font-bold text-sm">완료됨</span>
             </div>
@@ -323,10 +323,10 @@ export default function AffinityDiagram({
       <header className="w-full border-b border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-5">
           {/* 탭 네비게이션 */}
-          <nav className="grid grid-cols-3 gap-1 bg-gray-100 rounded-lg p-1 w-full">
+          <nav className="grid grid-cols-3 gap-1.5 bg-gray-100 rounded-lg p-1.5 w-full">
             <button
               onClick={() => setSortType('category')}
-              className={`px-2 md:px-4 py-2.5 md:py-3 rounded-md transition-all text-sm font-medium text-center ${
+              className={`touch-manipulation px-2 md:px-4 py-3 md:py-3 rounded-md transition-all text-sm font-medium text-center ${
                 sortType === 'category'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -336,7 +336,7 @@ export default function AffinityDiagram({
             </button>
             <button
               onClick={() => setSortType('topic')}
-              className={`px-2 md:px-4 py-2.5 md:py-3 rounded-md transition-all text-sm font-medium text-center ${
+              className={`touch-manipulation px-2 md:px-4 py-3 md:py-3 rounded-md transition-all text-sm font-medium text-center ${
                 sortType === 'topic'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -346,7 +346,7 @@ export default function AffinityDiagram({
             </button>
             <button
               onClick={() => setSortType('time')}
-              className={`px-2 md:px-4 py-2.5 md:py-3 rounded-md transition-all text-sm font-medium text-center ${
+              className={`touch-manipulation px-2 md:px-4 py-3 md:py-3 rounded-md transition-all text-sm font-medium text-center ${
                 sortType === 'time'
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -375,14 +375,14 @@ export default function AffinityDiagram({
           </div>
         </div>
       ) : (
-        <main className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-6 h-[calc(100vh-140px)] md:h-auto overflow-y-auto md:overflow-visible snap-y snap-proximity md:snap-none touch-pan-y">
+        <main className={`max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-6 h-[calc(100vh-140px)] md:h-auto overflow-y-auto md:overflow-visible touch-pan-y ${sortType === 'time' ? 'snap-y snap-proximity md:snap-none' : 'snap-none'}`}>
           {groups.map((group) => {
             const groupNotes = groupedNotes[group];
             const activeCount = groupNotes.filter(note => !note.isCompleted).length;
             const completedCount = groupNotes.filter(note => note.isCompleted).length;
 
             return (
-              <section key={group} className="mb-6 md:mb-12 snap-start">
+              <section key={group} className={`mb-6 md:mb-12 ${sortType === 'time' ? 'snap-start' : ''}`}>
                 <div className="flex items-center justify-between mb-4 md:mb-8">
                   <div className="flex items-center gap-3 md:gap-4">
                     {isTimeline ? (

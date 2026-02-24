@@ -429,11 +429,13 @@ export default function StickyNoteInput({
     );
   }
 
+  const isActiveInput = isEditing && !isClassifying;
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-5 bg-gray-50 overscroll-none">
+    <div className={`min-h-screen flex items-center justify-center ${isActiveInput ? 'p-2 md:p-5' : 'p-5'} bg-gray-50 overscroll-none`}>
       <div
         ref={containerRef}
-        className={`relative w-full max-w-sm aspect-square ${stickyColor} rounded-lg shadow-lg transform cursor-pointer touch-none ${
+        className={`relative aspect-square ${isActiveInput ? 'w-[94vw] max-w-[430px] md:w-full md:max-w-md' : 'w-full max-w-sm'} ${stickyColor} rounded-lg shadow-lg transform cursor-pointer touch-none ${
           isClassifying ? 'opacity-75' : ''
         } ${isDragging ? 'scale-110 shadow-2xl' : isInteracting ? 'scale-105' : 'active:scale-95'}`}
         onTouchStart={onTouchStart}
@@ -441,7 +443,7 @@ export default function StickyNoteInput({
         onTouchEnd={onTouchEnd}
         onDoubleClick={handleDoubleClick}
         style={{ 
-          margin: '0 20px',
+          margin: isActiveInput ? '0 8px' : '0 20px',
           transform: `translate(${offset.x}px, ${offset.y}px)`,
           transition: isDragging ? 'transform 0s' : 'all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)' // 드래그 중에는 즉시 반응
         }}
@@ -456,7 +458,7 @@ export default function StickyNoteInput({
           onChange={(e) => setContent(e.target.value.slice(0, 100))}
           onKeyDown={handleKeyDown}
           placeholder="메모를 입력하세요."
-          className={`w-full h-full p-3 pt-8 pb-8 bg-transparent border-none outline-none resize-none ${fontSize} text-gray-800 placeholder-gray-500 leading-relaxed touch-none transition-all duration-200`}
+          className={`w-full h-full p-3 pt-8 pb-8 bg-transparent border-none outline-none resize-none ${fontSize} text-gray-800 placeholder-gray-500 leading-relaxed touch-auto transition-all duration-200`}
           maxLength={100}
           disabled={isClassifying}
         />
