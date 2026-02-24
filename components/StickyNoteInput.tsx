@@ -27,6 +27,7 @@ export default function StickyNoteInput({
 }: StickyNoteInputProps) {
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(true);
+  const [isFocused, setIsFocused] = useState(false);
   const [feedback, setFeedback] = useState<'save' | 'delete' | 'classifying' | null>(null);
   // 초기 색상을 currentNote에 따라 즉시 결정
   const getInitialColor = () => {
@@ -148,6 +149,7 @@ export default function StickyNoteInput({
     if (currentNote) {
       setContent(currentNote.content);
       setIsEditing(true);
+      setIsFocused(false);
       // 기존 노트의 색상을 즉시 설정 (깜빡임 방지)
       const colorMap = {
         yellow: 'bg-yellow-200',
@@ -160,6 +162,7 @@ export default function StickyNoteInput({
     } else {
       setContent('');
       setIsEditing(true);
+      setIsFocused(false);
       // 새 메모는 기본 노란색으로 시작
       setStickyColor('bg-yellow-200');
     }
@@ -429,7 +432,7 @@ export default function StickyNoteInput({
     );
   }
 
-  const isActiveInput = isEditing && !isClassifying;
+  const isActiveInput = isFocused && !isClassifying;
 
   return (
     <div className={`min-h-screen flex items-center justify-center ${isActiveInput ? 'p-2 md:p-5' : 'p-5'} bg-gray-50 overscroll-none`}>
@@ -457,6 +460,8 @@ export default function StickyNoteInput({
           value={content}
           onChange={(e) => setContent(e.target.value.slice(0, 100))}
           onKeyDown={handleKeyDown}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           placeholder="메모를 입력하세요."
           className={`w-full h-full p-3 pt-8 pb-8 bg-transparent border-none outline-none resize-none ${fontSize} text-gray-800 placeholder-gray-500 leading-relaxed touch-auto transition-all duration-200`}
           maxLength={100}
