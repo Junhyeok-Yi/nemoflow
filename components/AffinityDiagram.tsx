@@ -294,7 +294,7 @@ export default function AffinityDiagram({
         </div>
 
         {note.isCompleted && (
-          <div className="absolute inset-0 bg-black/52 group-hover:bg-black/18 rounded-2xl z-10 backdrop-blur-[1.5px] group-hover:backdrop-blur-0 transition-all duration-200 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/58 group-hover:bg-black/32 rounded-2xl z-10 backdrop-blur-[1.5px] group-hover:backdrop-blur-0 transition-all duration-200 flex items-center justify-center">
             <div className="text-center text-white transition-opacity duration-200 group-hover:opacity-0">
               <Check className="w-8 h-8 text-green-400 mx-auto mb-2" />
               <span className="font-bold text-sm">완료됨</span>
