@@ -20,11 +20,18 @@ ALTER TABLE sticky_notes
   ADD COLUMN IF NOT EXISTS classification_confidence DOUBLE PRECISION NULL;
 
 -- Optional FK (deferred integrity from now on)
-ALTER TABLE sticky_notes
-  ADD CONSTRAINT IF NOT EXISTS fk_sticky_notes_meeting_session
-  FOREIGN KEY (meeting_session_id)
-  REFERENCES meeting_sessions(id)
-  ON DELETE SET NULL;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'fk_sticky_notes_meeting_session'
+  ) THEN
+    ALTER TABLE sticky_notes
+      ADD CONSTRAINT fk_sticky_notes_meeting_session
+      FOREIGN KEY (meeting_session_id)
+      REFERENCES meeting_sessions(id)
+      ON DELETE SET NULL;
+  END IF;
+END $$;
 
 -- 3) Reclassification audit trail
 CREATE TABLE IF NOT EXISTS note_reclassifications (
@@ -37,11 +44,18 @@ CREATE TABLE IF NOT EXISTS note_reclassifications (
 );
 
 -- Optional FK to sticky_notes
-ALTER TABLE note_reclassifications
-  ADD CONSTRAINT IF NOT EXISTS fk_note_reclassifications_note
-  FOREIGN KEY (note_id)
-  REFERENCES sticky_notes(id)
-  ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'fk_note_reclassifications_note'
+  ) THEN
+    ALTER TABLE note_reclassifications
+      ADD CONSTRAINT fk_note_reclassifications_note
+      FOREIGN KEY (note_id)
+      REFERENCES sticky_notes(id)
+      ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- 4) Indices
 CREATE INDEX IF NOT EXISTS idx_sticky_notes_meeting_session_id
