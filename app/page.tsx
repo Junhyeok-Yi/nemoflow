@@ -35,11 +35,24 @@ export default function Home() {
   const [activeMeeting, setActiveMeeting] = useState<MeetingSession | null>(null);
   const { toast } = useToast();
 
+  const parseJsonSafe = async (res: Response) => {
+    const raw = await res.text();
+    if (!raw) return null;
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  };
+
   const fetchActiveMeeting = async () => {
     try {
       const res = await fetch('/api/meetings/active', { cache: 'no-store' });
-      const data = await res.json();
-      const session = data?.activeSession ?? null;
+      const data = await parseJsonSafe(res);
+      if (!res.ok) {
+        throw new Error((data as { error?: string } | null)?.error || '활성 회의 조회 실패');
+      }
+      const session = (data as { activeSession?: MeetingSession | null } | null)?.activeSession ?? null;
       setActiveMeeting(session);
       setMeetingMode(Boolean(session));
     } catch (error) {
@@ -54,8 +67,8 @@ export default function Home() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title }),
     });
-    const data = await res.json();
-    if (!res.ok) {
+    const data = await parseJsonSafe(res) as { error?: string; session?: MeetingSession } | null;
+    if (!res.ok || !data?.session) {
       throw new Error(data?.error || '회의 시작 실패');
     }
     setActiveMeeting(data.session);
@@ -68,7 +81,7 @@ export default function Home() {
       return;
     }
     const res = await fetch(`/api/meetings/${activeMeeting.id}/end`, { method: 'POST' });
-    const data = await res.json();
+    const data = await parseJsonSafe(res) as { error?: string } | null;
     if (!res.ok && res.status !== 409) {
       throw new Error(data?.error || '회의 종료 실패');
     }
@@ -322,21 +335,6 @@ export default function Home() {
 
   return (
     <main className="min-h-screen">
-      <div className="fixed top-4 left-4 z-30 flex gap-2 rounded-lg border border-slate-200 bg-white/90 p-1 shadow backdrop-blur-sm">
-        <button
-          onClick={() => setViewMode('memo')}
-          className={`rounded-md px-3 py-1.5 text-sm font-medium ${viewMode === 'memo' ? 'bg-slate-900 text-white' : 'text-slate-700'}`}
-        >
-          Memo
-        </button>
-        <button
-          onClick={() => setViewMode('diagram')}
-          className={`rounded-md px-3 py-1.5 text-sm font-medium ${viewMode === 'diagram' ? 'bg-slate-900 text-white' : 'text-slate-700'}`}
-        >
-          Diagram
-        </button>
-      </div>
-
       {viewMode === 'memo' ? (
         <StickyNoteInput
           currentNote={currentNote}
