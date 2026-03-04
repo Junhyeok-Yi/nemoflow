@@ -339,7 +339,25 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen">
+    <main className="min-h-screen relative">
+      {/* 회의 모드 토글 버튼 - 화면 우상단 고정 */}
+      {isSupabaseConnected && (
+        <div className="fixed top-4 right-4 z-30">
+          <button
+            type="button"
+            onClick={handleToggleMeetingMode}
+            className={`min-h-[44px] min-w-[92px] rounded-xl px-4 py-2 text-sm font-semibold shadow-lg transition-all duration-200 ease-in-out ${
+              meetingMode
+                ? 'bg-emerald-500 text-white hover:bg-emerald-600'
+                : 'bg-white text-slate-800 border border-slate-200 hover:bg-slate-50'
+            }`}
+            title={activeMeeting?.title ?? '새 회의 시작'}
+          >
+            회의 {meetingMode ? 'ON' : 'OFF'}
+          </button>
+        </div>
+      )}
+
       {viewMode === 'memo' ? (
         <StickyNoteInput
           currentNote={currentNote}
@@ -349,9 +367,6 @@ export default function Home() {
           onSwitchToAffinity={() => setViewMode('diagram')}
           onComplete={toggleNoteCompletion}
           isClassifying={isClassifying}
-          meetingMode={meetingMode}
-          meetingLabel={activeMeeting?.title ?? '활성 회의 없음'}
-          onToggleMeetingMode={handleToggleMeetingMode}
         />
       ) : (
         <AffinityDiagram

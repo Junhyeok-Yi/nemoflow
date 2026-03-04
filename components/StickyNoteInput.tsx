@@ -14,9 +14,6 @@ interface StickyNoteInputProps {
   currentNote: StickyNote | null;
   setCurrentNote: (note: StickyNote | null) => void;
   isClassifying?: boolean; // AI 분류 중 상태
-  meetingMode?: boolean;
-  meetingLabel?: string;
-  onToggleMeetingMode?: () => void;
 }
 
 export default function StickyNoteInput({
@@ -27,9 +24,6 @@ export default function StickyNoteInput({
   currentNote,
   setCurrentNote,
   isClassifying = false,
-  meetingMode = false,
-  meetingLabel = '활성 회의 없음',
-  onToggleMeetingMode,
 }: StickyNoteInputProps) {
   const [content, setContent] = useState('');
   const [isEditing, setIsEditing] = useState(true);
@@ -457,61 +451,47 @@ export default function StickyNoteInput({
           transition: isDragging ? 'transform 0s' : 'all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)' // 드래그 중에는 즉시 반응
         }}
       >
-        {/* 포스트잇 상단 접착 부분 */}
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-yellow-300 rounded-b-sm opacity-60"></div>
+      {/* 포스트잇 상단 접착 부분 */}
+      <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-yellow-300 rounded-b-sm opacity-60"></div>
 
-        {/* 회의모드 토글 (메모 우상단) */}
-        <button
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onToggleMeetingMode?.();
-          }}
-          className={`absolute top-2 right-2 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-sm transition ${meetingMode ? 'bg-emerald-600 text-white' : 'bg-white/90 text-slate-700'}`}
-          title={meetingLabel}
-        >
-          회의 {meetingMode ? 'ON' : 'OFF'}
-        </button>
+      {/* 텍스트 입력 영역 - 패딩 줄이고 전체 크기 활용 */}
+      <textarea
+        ref={textareaRef}
+        value={content}
+        onChange={(e) => setContent(e.target.value.slice(0, 100))}
+        onKeyDown={handleKeyDown}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+        placeholder="메모를 입력하세요."
+        className={`w-full h-full p-3 pt-8 pb-8 bg-transparent border-none outline-none resize-none ${fontSize} text-gray-800 placeholder-gray-500 leading-relaxed touch-auto transition-all duration-200`}
+        maxLength={100}
+        disabled={isClassifying}
+      />
+      
+      {/* 글자 수 표시 */}
+      <div className="absolute bottom-1 right-2 text-xs text-gray-500">
+        {content.length}/100
+      </div>
+      
+      {/* 안내 텍스트 - PC와 모바일 모두 지원 */}
+      <div className="absolute bottom-1 left-2 text-[11px] text-gray-500">
+        {isClassifying ? 'AI 분류 중...' : `↑완료 | ↓다이어그램 | ←→삭제`}
+      </div>
 
-        {/* 텍스트 입력 영역 - 패딩 줄이고 전체 크기 활용 */}
-        <textarea
-          ref={textareaRef}
-          value={content}
-          onChange={(e) => setContent(e.target.value.slice(0, 100))}
-          onKeyDown={handleKeyDown}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          placeholder="메모를 입력하세요."
-          className={`w-full h-full p-3 pt-8 pb-8 bg-transparent border-none outline-none resize-none ${fontSize} text-gray-800 placeholder-gray-500 leading-relaxed touch-auto transition-all duration-200`}
-          maxLength={100}
-          disabled={isClassifying}
-        />
-        
-        {/* 글자 수 표시 */}
-        <div className="absolute bottom-1 right-2 text-xs text-gray-500">
-          {content.length}/100
-        </div>
-        
-        {/* 안내 텍스트 - PC와 모바일 모두 지원 */}
-        <div className="absolute bottom-1 left-2 text-[11px] text-gray-500">
-          {isClassifying ? 'AI 분류 중...' : `↑완료 | ↓다이어그램 | ←→삭제 | ${meetingMode ? '회의모드' : '일반모드'}`}
-        </div>
-
-        {/* 피드백 아이콘 */}
-        {feedback && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 rounded-lg">
-            <div className="bg-white rounded-full p-3 shadow-lg">
-              {feedback === 'save' ? (
-                <Check className="w-8 h-8 text-green-500" />
-              ) : feedback === 'delete' ? (
-                <X className="w-8 h-8 text-red-500" />
-              ) : feedback === 'classifying' ? (
-                <Brain className="w-8 h-8 text-blue-500 animate-pulse" />
-              ) : null}
-            </div>
+      {/* 피드백 아이콘 */}
+      {feedback && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-20 rounded-lg">
+          <div className="bg-white rounded-full p-3 shadow-lg">
+            {feedback === 'save' ? (
+              <Check className="w-8 h-8 text-green-500" />
+            ) : feedback === 'delete' ? (
+              <X className="w-8 h-8 text-red-500" />
+            ) : feedback === 'classifying' ? (
+              <Brain className="w-8 h-8 text-blue-500 animate-pulse" />
+            ) : null}
           </div>
-        )}
+        </div>
+      )}
       </div>
     </div>
   );
