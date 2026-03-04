@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { StickyNote } from '@/lib/types';
 import { getCategoryPriority } from '@/lib/ai-categorizer';
 import { classifyTopicSmart } from '@/lib/smart-topic-extractor';
@@ -236,6 +236,44 @@ export default function AffinityDiagram({
 
   const { groups, groupedNotes, isTimeline } = getSortedNotesAndGroups();
 
+  const meetingLabelBySessionId = useMemo(() => {
+    const byDay = new Map<string, string[]>();
+
+    notes.forEach((note) => {
+      const sessionId = note.meetingSessionId;
+      if (!sessionId) return;
+
+      const dayKey = /^\d{12}$/.test(sessionId)
+        ? sessionId.slice(0, 6) // YYMMDD
+        : format(note.createdAt instanceof Date ? note.createdAt : new Date(note.createdAt), 'yyMMdd');
+
+      if (!byDay.has(dayKey)) {
+        byDay.set(dayKey, []);
+      }
+
+      const sessions = byDay.get(dayKey)!;
+      if (!sessions.includes(sessionId)) {
+        sessions.push(sessionId);
+      }
+    });
+
+    const labelMap: Record<string, string> = {};
+
+    byDay.forEach((sessions) => {
+      const sorted = [...sessions].sort();
+      if (sorted.length === 1) {
+        labelMap[sorted[0]] = '회의';
+        return;
+      }
+
+      sorted.forEach((id, index) => {
+        labelMap[id] = `회의${index + 1}`;
+      });
+    });
+
+    return labelMap;
+  }, [notes]);
+
   const switchTab = (next: SortType) => {
     const container = scrollContainerRef.current;
     if (container) {
@@ -251,7 +289,12 @@ export default function AffinityDiagram({
     container.scrollTo({ top: nextTop, behavior: 'auto' });
   }, [sortType]);
 
-  const renderNoteCard = (note: StickyNote, group: string, mobile = false) => (
+  const renderNoteCard = (note: StickyNote, group: string, mobile = false) => {
+    const meetingLabel = note.meetingSessionId
+      ? meetingLabelBySessionId[note.meetingSessionId] ?? '회의'
+      : null;
+
+    return (
     <div
       key={note.id}
       onClick={(e) => handleNoteClick(note, e)}
@@ -308,8 +351,8 @@ export default function AffinityDiagram({
 
           <div className="flex items-center justify-between pt-4 border-t border-black/10">
             <span className="text-xs text-gray-600 font-medium">{group}</span>
-            <span className="text-xs text-gray-500">
-              {format(note.createdAt instanceof Date ? note.createdAt : new Date(note.createdAt), 'MM.dd', { locale: ko })}
+            <span className="text-xs text-gray-600 font-semibold">
+              {meetingLabel ? `(${meetingLabel})` : ''}
             </span>
           </div>
         </div>
@@ -337,6 +380,7 @@ export default function AffinityDiagram({
       </div>
     </div>
   );
+};
 
   return (
     <div className="min-h-screen bg-white text-gray-900 relative">
