@@ -442,25 +442,7 @@ export default function StickyNoteInput({
 
   return (
     <div className={`min-h-screen flex items-center justify-center ${isActiveInput ? 'p-2 md:p-5' : 'p-5'} bg-gray-50 overscroll-none`}>
-      <div
-        ref={containerRef}
-        className={`relative aspect-square ${isActiveInput ? 'w-[94vw] max-w-[430px] md:w-full md:max-w-md' : 'w-full max-w-sm'} ${stickyColor} rounded-lg shadow-lg transform cursor-pointer touch-none ${
-          isClassifying ? 'opacity-75' : ''
-        } ${isDragging ? 'scale-110 shadow-2xl' : isInteracting ? 'scale-105' : 'active:scale-95'}`}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-        onDoubleClick={handleDoubleClick}
-        style={{ 
-          margin: isActiveInput ? '0 8px' : '0 20px',
-          transform: `translate(${offset.x}px, ${offset.y}px)`,
-          transition: isDragging ? 'transform 0s' : 'all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)' // 드래그 중에는 즉시 반응
-        }}
-      >
-        {/* 포스트잇 상단 접착 부분 */}
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-yellow-300 rounded-b-sm opacity-60"></div>
-
-        {/* 회의모드 토글 (메모 우상단) */}
+      <div className="relative">
         <button
           type="button"
           onClick={(e) => {
@@ -468,11 +450,29 @@ export default function StickyNoteInput({
             e.stopPropagation();
             onToggleMeetingMode?.();
           }}
-          className={`absolute top-2 right-2 z-20 rounded-full px-2.5 py-1 text-[11px] font-semibold shadow-sm transition ${meetingMode ? 'bg-emerald-600 text-white' : 'bg-white/90 text-slate-700'}`}
+          className={`absolute -top-3 -right-2 z-30 min-h-[44px] min-w-[92px] rounded-xl px-3 py-2 text-xs font-semibold shadow transition ${meetingMode ? 'bg-emerald-600 text-white' : 'bg-white text-slate-700 border border-slate-200'}`}
           title={meetingLabel}
         >
           회의 {meetingMode ? 'ON' : 'OFF'}
         </button>
+
+        <div
+          ref={containerRef}
+          className={`relative aspect-square ${isActiveInput ? 'w-[94vw] max-w-[430px] md:w-full md:max-w-md' : 'w-full max-w-sm'} ${stickyColor} rounded-lg shadow-lg transform cursor-pointer touch-none ${
+            isClassifying ? 'opacity-75' : ''
+          } ${isDragging ? 'scale-110 shadow-2xl' : isInteracting ? 'scale-105' : 'active:scale-95'}`}
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          onDoubleClick={handleDoubleClick}
+          style={{ 
+            margin: isActiveInput ? '0 8px' : '0 20px',
+            transform: `translate(${offset.x}px, ${offset.y}px)`,
+            transition: isDragging ? 'transform 0s' : 'all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55)' // 드래그 중에는 즉시 반응
+          }}
+        >
+        {/* 포스트잇 상단 접착 부분 */}
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-4 bg-yellow-300 rounded-b-sm opacity-60"></div>
 
         {/* 텍스트 입력 영역 - 패딩 줄이고 전체 크기 활용 */}
         <textarea
@@ -512,6 +512,7 @@ export default function StickyNoteInput({
             </div>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
