@@ -1,0 +1,69 @@
+name: PR/Vercel Discord Notify
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, closed]
+  check_run:
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  notify-pr:
+    if: github.event_name == 'pull_request' && secrets.DISCORD_WEBHOOK_URL != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send PR event to Discord
+        env:
+          WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          ACTION: ${{ github.event.action }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          REPO: ${{ github.repository }}
+          MERGED: ${{ github.event.pull_request.merged }}
+        run: |
+          if [ "$ACTION" = "closed" ] && [ "$MERGED" = "true" ]; then
+            STATUS="MERGED"
+          elif [ "$ACTION" = "closed" ]; then
+            STATUS="CLOSED"
+          elif [ "$ACTION" = "synchronize" ]; then
+            STATUS="UPDATED"
+          else
+            STATUS=$(echo "$ACTION" | tr '[:lower:]' '[:upper:]')
+          fi
+
+          curl -sS -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"content\":\"[${REPO}] PR #${PR_NUMBER} ${STATUS}\\n${PR_TITLE}\\n${PR_URL}\"}"
+
+  notify-vercel:
+    if: github.event_name == 'check_run' && secrets.DISCORD_WEBHOOK_URL != ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Vercel check event to Discord
+        env:
+          WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          CHECK_NAME: ${{ github.event.check_run.name }}
+          CONCLUSION: ${{ github.event.check_run.conclusion }}
+          DETAILS_URL: ${{ github.event.check_run.details_url }}
+          REPO: ${{ github.repository }}
+          PRS_JSON: ${{ toJson(github.event.check_run.pull_requests) }}
+        run: |
+          echo "$CHECK_NAME" | grep -qi "vercel" || exit 0
+
+          PR_NUMBER=$(echo "$PRS_JSON" | jq -r '.[0].number // empty')
+          PR_URL=$(echo "$PRS_JSON" | jq -r '.[0].html_url // empty')
+
+          if [ -z "$PR_NUMBER" ]; then
+            # PR에 연결되지 않은 체크는 무시
+            exit 0
+          fi
+
+          STATE=$(echo "$CONCLUSION" | tr '[:lower:]' '[:upper:]')
+
+          curl -sS -X POST "$WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{\"content\":\"[${REPO}] PR #${PR_NUMBER} VERCEL ${STATE}\\n${CHECK_NAME}\\nPR: ${PR_URL}\\nDetails: ${DETAILS_URL}\"}"
