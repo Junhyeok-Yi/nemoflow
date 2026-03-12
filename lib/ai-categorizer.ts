@@ -388,7 +388,7 @@ export async function categorizeContent(content: string): Promise<Category> {
  */
 export function getCategoryColor(category: Category): 'yellow' | 'pink' | 'blue' | 'green' {
   const colorMap = {
-    'To-Do': 'pink',
+    'To-Do': 'green',
     '아이디어': 'blue',
     '메모': 'yellow'
   };

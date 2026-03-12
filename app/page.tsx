@@ -218,10 +218,10 @@ export default function Home() {
   };
 
   // 노트 추가/수정
-  const addNote = async (content: string) => {
+  const addNote = async (content: string, categoryOverride?: StickyNote['category']) => {
     setIsClassifying(true);
     try {
-      const category = await categorizeContent(content);
+      const category = categoryOverride ?? await categorizeContent(content);
       const now = new Date();
       
       if (currentNote) {
