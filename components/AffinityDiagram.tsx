@@ -215,21 +215,21 @@ export default function AffinityDiagram({
     switch (group) {
       case 'To-Do':
         return {
-          accent: 'text-pink-600',
-          badgeColor: 'bg-pink-50 text-pink-700 border-pink-200',
-          completedColor: 'bg-green-50 text-green-700 border-green-200'
+          accent: 'text-emerald-700',
+          badgeColor: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+          completedColor: 'bg-emerald-50 text-emerald-700 border-emerald-200'
         };
       case '아이디어':
         return {
-          accent: 'text-blue-600',
-          badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
-          completedColor: 'bg-green-50 text-green-700 border-green-200'
+          accent: 'text-indigo-700',
+          badgeColor: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+          completedColor: 'bg-emerald-50 text-emerald-700 border-emerald-200'
         };
       default:
         return {
-          accent: 'text-amber-600',
-          badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
-          completedColor: 'bg-green-50 text-green-700 border-green-200'
+          accent: 'text-amber-700',
+          badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
+          completedColor: 'bg-emerald-50 text-emerald-700 border-emerald-200'
         };
     }
   };
@@ -301,17 +301,17 @@ export default function AffinityDiagram({
       className={`group relative aspect-square cursor-pointer transition-all duration-300 ${mobile ? 'snap-center shrink-0 w-[78vw] max-w-[340px]' : 'hover:scale-105'}`}
     >
       <div className={`relative w-full h-full rounded-2xl shadow-lg transition-all duration-300 ${
-        note.color === 'yellow' ? 'bg-gradient-to-br from-amber-300 via-orange-500 to-rose-700' :
-        note.color === 'pink' ? 'bg-gradient-to-br from-fuchsia-300 via-violet-600 to-indigo-800' :
-        note.color === 'blue' ? 'bg-gradient-to-br from-sky-300 via-blue-600 to-indigo-800' :
-        'bg-gradient-to-br from-lime-300 via-emerald-600 to-teal-800'
+        note.color === 'yellow' ? 'bg-gradient-to-br from-amber-100 via-orange-200 to-rose-300' :
+        note.color === 'pink' ? 'bg-gradient-to-br from-fuchsia-100 via-violet-200 to-indigo-300' :
+        note.color === 'blue' ? 'bg-gradient-to-br from-sky-100 via-blue-200 to-indigo-300' :
+        'bg-gradient-to-br from-lime-100 via-emerald-200 to-teal-300'
       } ${mobile ? '' : 'group-hover:shadow-2xl'}`}>
 
         <div className="absolute top-2 right-2 z-50 more-menu">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="p-2 text-white/85 hover:text-white transition-colors hover:bg-white/20 rounded-full"
+                className="p-2 text-slate-700 hover:text-white transition-colors hover:bg-white/20 rounded-full"
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
@@ -340,19 +340,19 @@ export default function AffinityDiagram({
           </DropdownMenu>
         </div>
 
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-3 rounded-b-lg bg-white/40"></div>
-        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_20%_12%,rgba(255,255,255,0.14),transparent_40%),radial-gradient(circle_at_82%_88%,rgba(0,0,0,0.32),transparent_45%),linear-gradient(to_bottom_right,rgba(0,0,0,0.12),rgba(0,0,0,0.08))]" />
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-3 rounded-b-lg bg-white/55"></div>
+        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_20%_12%,rgba(255,255,255,0.20),transparent_40%),radial-gradient(circle_at_82%_88%,rgba(0,0,0,0.10),transparent_45%),linear-gradient(to_bottom_right,rgba(255,255,255,0.05),rgba(0,0,0,0.03))]" />
 
         <div className="relative h-full flex flex-col justify-between p-6 pt-8">
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-white text-center leading-relaxed font-medium text-sm drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
+            <p className="text-slate-900 text-center leading-relaxed font-medium text-sm">
               {note.content}
             </p>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-white/25">
-            <span className="text-xs text-white/85 font-medium">{group}</span>
-            <span className="text-xs text-white/85 font-semibold">
+          <div className="flex items-center justify-between pt-4 border-t border-black/10">
+            <span className="text-xs text-slate-700 font-medium">{group}</span>
+            <span className="text-xs text-slate-700 font-semibold">
               {meetingLabel ? `(${meetingLabel})` : ''}
             </span>
           </div>
