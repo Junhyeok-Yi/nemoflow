@@ -33,14 +33,14 @@ export default function StickyNoteInput({
   const getInitialColor = () => {
     if (currentNote) {
       const colorMap = {
-        yellow: 'bg-gradient-to-br from-amber-200 via-orange-400 to-rose-500',
-        pink: 'bg-gradient-to-br from-fuchsia-200 via-violet-500 to-indigo-700',
-        blue: 'bg-gradient-to-br from-cyan-200 via-blue-500 to-indigo-700',
-        green: 'bg-gradient-to-br from-lime-200 via-emerald-500 to-teal-700'
+        yellow: 'bg-gradient-to-br from-amber-300 via-orange-500 to-rose-700',
+        pink: 'bg-gradient-to-br from-fuchsia-300 via-violet-600 to-indigo-800',
+        blue: 'bg-gradient-to-br from-sky-300 via-blue-600 to-indigo-800',
+        green: 'bg-gradient-to-br from-lime-300 via-emerald-600 to-teal-800'
       };
       return colorMap[currentNote.color];
     }
-    return 'bg-gradient-to-br from-amber-200 via-orange-400 to-rose-500';
+    return 'bg-gradient-to-br from-amber-300 via-orange-500 to-rose-700';
   };
   
   const [stickyColor, setStickyColor] = useState(getInitialColor());
@@ -69,20 +69,20 @@ export default function StickyNoteInput({
   const categoryUI: Record<StickyNote['category'], { label: string; bg: string; text: string; Icon: typeof ListTodo }> = {
     'To-Do': {
       label: 'To-do',
-      bg: 'bg-teal-100/90',
-      text: 'text-teal-900',
+      bg: 'bg-emerald-700/90',
+      text: 'text-white',
       Icon: ListTodo,
     },
     '아이디어': {
       label: 'Idea',
-      bg: 'bg-violet-100/90',
-      text: 'text-violet-900',
+      bg: 'bg-indigo-700/90',
+      text: 'text-white',
       Icon: Lightbulb,
     },
     '메모': {
       label: 'Memo',
-      bg: 'bg-amber-100/90',
-      text: 'text-amber-900',
+      bg: 'bg-amber-700/90',
+      text: 'text-white',
       Icon: FileText,
     },
   };
@@ -91,7 +91,7 @@ export default function StickyNoteInput({
   useEffect(() => {
     setIsMounted(true);
     // 기본적으로 웜 톤 그라데이션으로 시작
-    setStickyColor('bg-gradient-to-br from-amber-200 via-orange-400 to-rose-500');
+    setStickyColor('bg-gradient-to-br from-amber-300 via-orange-500 to-rose-700');
   }, []);
 
   // 태그 드롭다운 바깥 클릭 시 닫기
@@ -167,10 +167,10 @@ export default function StickyNoteInput({
 
     const previewColor = getCategoryColor(resolvedCategory);
     const colorMap = {
-      yellow: 'bg-gradient-to-br from-amber-200 via-orange-400 to-rose-500',
-      pink: 'bg-gradient-to-br from-fuchsia-200 via-violet-500 to-indigo-700',
-      blue: 'bg-gradient-to-br from-cyan-200 via-blue-500 to-indigo-700',
-      green: 'bg-gradient-to-br from-lime-200 via-emerald-500 to-teal-700'
+      yellow: 'bg-gradient-to-br from-amber-300 via-orange-500 to-rose-700',
+      pink: 'bg-gradient-to-br from-fuchsia-300 via-violet-600 to-indigo-800',
+      blue: 'bg-gradient-to-br from-sky-300 via-blue-600 to-indigo-800',
+      green: 'bg-gradient-to-br from-lime-300 via-emerald-600 to-teal-800'
     };
 
     setStickyColor(colorMap[previewColor]);
@@ -189,14 +189,14 @@ export default function StickyNoteInput({
       setContent(currentNote.content);
       setIsEditing(true);
       setIsFocused(false);
-      setManualCategory(currentNote.category);
+      setManualCategory(null);
       setIsTagMenuOpen(false);
       // 기존 노트의 색상을 즉시 설정 (깜빡임 방지)
       const colorMap = {
-        yellow: 'bg-gradient-to-br from-amber-200 via-orange-400 to-rose-500',
-        pink: 'bg-gradient-to-br from-fuchsia-200 via-violet-500 to-indigo-700',
-        blue: 'bg-gradient-to-br from-cyan-200 via-blue-500 to-indigo-700',
-        green: 'bg-gradient-to-br from-lime-200 via-emerald-500 to-teal-700'
+        yellow: 'bg-gradient-to-br from-amber-300 via-orange-500 to-rose-700',
+        pink: 'bg-gradient-to-br from-fuchsia-300 via-violet-600 to-indigo-800',
+        blue: 'bg-gradient-to-br from-sky-300 via-blue-600 to-indigo-800',
+        green: 'bg-gradient-to-br from-lime-300 via-emerald-600 to-teal-800'
       };
       // 즉시 색상 설정으로 깜빡임 방지
       setStickyColor(colorMap[currentNote.color]);
@@ -207,7 +207,7 @@ export default function StickyNoteInput({
       setManualCategory(null);
       setIsTagMenuOpen(false);
       // 새 메모는 기본 웜 톤 그라데이션으로 시작
-      setStickyColor('bg-gradient-to-br from-amber-200 via-orange-400 to-rose-500');
+      setStickyColor('bg-gradient-to-br from-amber-300 via-orange-500 to-rose-700');
     }
   }, [currentNote]);
 
@@ -232,10 +232,10 @@ export default function StickyNoteInput({
   }, [feedback]);
 
   useEffect(() => {
-    if (!isFocused || isClassifying) {
+    if ((!isFocused && !isTagMenuOpen) || isClassifying) {
       setIsTagMenuOpen(false);
     }
-  }, [isFocused, isClassifying]);
+  }, [isFocused, isTagMenuOpen, isClassifying]);
 
 
 
@@ -471,9 +471,9 @@ export default function StickyNoteInput({
   if (!isMounted) {
     return (
       <div className="min-h-screen flex items-center justify-center p-5 bg-gray-50">
-        <div className="relative w-full max-w-sm aspect-square bg-gradient-to-br from-amber-200 via-orange-400 to-rose-500 rounded-lg shadow-lg" style={{ margin: '0 20px' }}>
+        <div className="relative w-full max-w-sm aspect-square bg-gradient-to-br from-amber-300 via-orange-500 to-rose-700 rounded-lg shadow-lg" style={{ margin: '0 20px' }}>
           <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-4 rounded-b-sm bg-white/40 backdrop-blur-[1px]"></div>
-          <div className="pointer-events-none absolute inset-0 rounded-lg bg-[radial-gradient(circle_at_20%_12%,rgba(255,255,255,0.35),transparent_42%),radial-gradient(circle_at_82%_88%,rgba(0,0,0,0.18),transparent_45%)]" />
+          <div className="pointer-events-none absolute inset-0 rounded-lg bg-[radial-gradient(circle_at_20%_12%,rgba(255,255,255,0.14),transparent_40%),radial-gradient(circle_at_82%_88%,rgba(0,0,0,0.32),transparent_45%),linear-gradient(to_bottom_right,rgba(0,0,0,0.12),rgba(0,0,0,0.08))]" />
           <textarea
             placeholder="메모를 입력하세요."
             className="w-full h-full p-3 pt-8 pb-8 bg-transparent border-none outline-none resize-none text-xl font-medium text-white placeholder-white/70 leading-relaxed"
@@ -486,7 +486,7 @@ export default function StickyNoteInput({
     );
   }
 
-  const isActiveInput = isFocused && !isClassifying;
+  const isActiveInput = (isFocused || isTagMenuOpen) && !isClassifying;
 
   return (
     <div className={`min-h-screen flex items-center justify-center ${isActiveInput ? 'p-2 md:p-5' : 'p-5'} bg-gray-50 overscroll-none`}>
@@ -507,7 +507,7 @@ export default function StickyNoteInput({
       >
       {/* 포스트잇 상단 접착 부분 */}
       <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-16 h-4 rounded-b-sm bg-white/40 backdrop-blur-[1px]"></div>
-      <div className="pointer-events-none absolute inset-0 rounded-lg bg-[radial-gradient(circle_at_20%_12%,rgba(255,255,255,0.35),transparent_42%),radial-gradient(circle_at_82%_88%,rgba(0,0,0,0.18),transparent_45%)]" />
+      <div className="pointer-events-none absolute inset-0 rounded-lg bg-[radial-gradient(circle_at_20%_12%,rgba(255,255,255,0.14),transparent_40%),radial-gradient(circle_at_82%_88%,rgba(0,0,0,0.32),transparent_45%),linear-gradient(to_bottom_right,rgba(0,0,0,0.12),rgba(0,0,0,0.08))]" />
 
       {/* 텍스트 입력 영역 - 패딩 줄이고 전체 크기 활용 */}
       <textarea
@@ -538,8 +538,10 @@ export default function StickyNoteInput({
         <div
           ref={tagMenuRef}
           className="absolute left-1/2 bottom-2 z-20 -translate-x-1/2"
-          onMouseDown={(e) => e.stopPropagation()}
-          onTouchStart={(e) => e.stopPropagation()}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
         >
           <button
             type="button"

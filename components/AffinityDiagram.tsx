@@ -301,17 +301,17 @@ export default function AffinityDiagram({
       className={`group relative aspect-square cursor-pointer transition-all duration-300 ${mobile ? 'snap-center shrink-0 w-[78vw] max-w-[340px]' : 'hover:scale-105'}`}
     >
       <div className={`relative w-full h-full rounded-2xl shadow-lg transition-all duration-300 ${
-        note.color === 'yellow' ? 'bg-gradient-to-br from-yellow-200 to-yellow-300' :
-        note.color === 'pink' ? 'bg-gradient-to-br from-pink-200 to-pink-300' :
-        note.color === 'blue' ? 'bg-gradient-to-br from-blue-200 to-blue-300' :
-        'bg-gradient-to-br from-green-200 to-green-300'
+        note.color === 'yellow' ? 'bg-gradient-to-br from-amber-300 via-orange-500 to-rose-700' :
+        note.color === 'pink' ? 'bg-gradient-to-br from-fuchsia-300 via-violet-600 to-indigo-800' :
+        note.color === 'blue' ? 'bg-gradient-to-br from-sky-300 via-blue-600 to-indigo-800' :
+        'bg-gradient-to-br from-lime-300 via-emerald-600 to-teal-800'
       } ${mobile ? '' : 'group-hover:shadow-2xl'}`}>
 
         <div className="absolute top-2 right-2 z-50 more-menu">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
-                className="p-2 text-gray-600 hover:text-gray-800 transition-colors hover:bg-white/80 rounded-full shadow-sm"
+                className="p-2 text-white/85 hover:text-white transition-colors hover:bg-white/20 rounded-full"
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
@@ -340,18 +340,19 @@ export default function AffinityDiagram({
           </DropdownMenu>
         </div>
 
-        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-3 bg-yellow-400/40 rounded-b-lg"></div>
+        <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-12 h-3 rounded-b-lg bg-white/40"></div>
+        <div className="pointer-events-none absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_20%_12%,rgba(255,255,255,0.14),transparent_40%),radial-gradient(circle_at_82%_88%,rgba(0,0,0,0.32),transparent_45%),linear-gradient(to_bottom_right,rgba(0,0,0,0.12),rgba(0,0,0,0.08))]" />
 
         <div className="relative h-full flex flex-col justify-between p-6 pt-8">
           <div className="flex-1 flex items-center justify-center">
-            <p className="text-gray-800 text-center leading-relaxed font-medium text-sm">
+            <p className="text-white text-center leading-relaxed font-medium text-sm drop-shadow-[0_1px_2px_rgba(0,0,0,0.35)]">
               {note.content}
             </p>
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-black/10">
-            <span className="text-xs text-gray-600 font-medium">{group}</span>
-            <span className="text-xs text-gray-600 font-semibold">
+          <div className="flex items-center justify-between pt-4 border-t border-white/25">
+            <span className="text-xs text-white/85 font-medium">{group}</span>
+            <span className="text-xs text-white/85 font-semibold">
               {meetingLabel ? `(${meetingLabel})` : ''}
             </span>
           </div>
