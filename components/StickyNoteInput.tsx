@@ -4,10 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { StickyNote } from '@/lib/types';
 import { getCategoryColor, categorizeForPreview } from '@/lib/ai-categorizer';
 import { useGestures } from '@/hooks/useGestures';
-import { Check, X, Brain } from 'lucide-react';
+import { Check, X, Brain, ChevronDown, ListTodo, Lightbulb, FileText } from 'lucide-react';
 
 interface StickyNoteInputProps {
-  onSave: (content: string) => void;
+  onSave: (content: string, categoryOverride?: StickyNote['category']) => void;
   onDelete: (id: string) => void;
   onComplete: (id: string) => void; // 완료 처리 함수
   onSwitchToAffinity: () => void;
@@ -54,12 +54,57 @@ export default function StickyNoteInput({
   
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const tagMenuRef = useRef<HTMLDivElement>(null);
+  const [manualCategory, setManualCategory] = useState<StickyNote['category'] | null>(null);
+  const [isTagMenuOpen, setIsTagMenuOpen] = useState(false);
+
+  const getAutoDetectedCategory = (): StickyNote['category'] => {
+    if (content.trim()) return categorizeForPreview(content);
+    if (currentNote?.category) return currentNote.category;
+    return '메모';
+  };
+
+  const resolvedCategory = manualCategory ?? getAutoDetectedCategory();
+
+  const categoryUI: Record<StickyNote['category'], { label: string; bg: string; text: string; Icon: typeof ListTodo }> = {
+    'To-Do': {
+      label: 'To-do',
+      bg: 'bg-teal-100',
+      text: 'text-teal-800',
+      Icon: ListTodo,
+    },
+    '아이디어': {
+      label: 'Idea',
+      bg: 'bg-violet-100',
+      text: 'text-violet-800',
+      Icon: Lightbulb,
+    },
+    '메모': {
+      label: 'Memo',
+      bg: 'bg-amber-100',
+      text: 'text-amber-800',
+      Icon: FileText,
+    },
+  };
 
   // 클라이언트 마운트 후 기본 색상 설정
   useEffect(() => {
     setIsMounted(true);
     // 기본적으로 노란색(메모)으로 시작
     setStickyColor('bg-yellow-200');
+  }, []);
+
+  // 태그 드롭다운 바깥 클릭 시 닫기
+  useEffect(() => {
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (!tagMenuRef.current) return;
+      if (!tagMenuRef.current.contains(event.target as Node)) {
+        setIsTagMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
   // 실제 텍스트박스 크기 기반 폰트 크기 조정
@@ -116,26 +161,20 @@ export default function StickyNoteInput({
     }
   }, [content, isMounted]);
 
-  // 🎨 실시간 색상 미리보기 (통합 분류 시스템 사용) - 새 메모일 때만
+  // 🎨 실시간 색상 미리보기 (자동 분류 + 수동 태그 반영)
   useEffect(() => {
-    if (content.trim() && isMounted && !currentNote) {
-      // 🚀 새로운 통합 분류 시스템 사용 (일관성 보장)
-      const previewCategory = categorizeForPreview(content);
-      
-      const previewColor = getCategoryColor(previewCategory);
-      const colorMap = {
-        yellow: 'bg-yellow-200',
-        pink: 'bg-pink-200',
-        blue: 'bg-blue-200',
-        green: 'bg-green-200'
-      };
-      
-      setStickyColor(colorMap[previewColor]);
-    } else if (!content.trim() && !currentNote) {
-      // 빈 내용이면 기본 노란색 (새 메모일 때만)
-      setStickyColor('bg-yellow-200');
-    }
-  }, [content, isMounted, currentNote]);
+    if (!isMounted) return;
+
+    const previewColor = getCategoryColor(resolvedCategory);
+    const colorMap = {
+      yellow: 'bg-yellow-200',
+      pink: 'bg-pink-200',
+      blue: 'bg-blue-200',
+      green: 'bg-green-200'
+    };
+
+    setStickyColor(colorMap[previewColor]);
+  }, [isMounted, resolvedCategory]);
 
   // 편집 모드일 때 포커스 및 키보드 활성화
   useEffect(() => {
@@ -150,6 +189,8 @@ export default function StickyNoteInput({
       setContent(currentNote.content);
       setIsEditing(true);
       setIsFocused(false);
+      setManualCategory(currentNote.category);
+      setIsTagMenuOpen(false);
       // 기존 노트의 색상을 즉시 설정 (깜빡임 방지)
       const colorMap = {
         yellow: 'bg-yellow-200',
@@ -163,6 +204,8 @@ export default function StickyNoteInput({
       setContent('');
       setIsEditing(true);
       setIsFocused(false);
+      setManualCategory(null);
+      setIsTagMenuOpen(false);
       // 새 메모는 기본 노란색으로 시작
       setStickyColor('bg-yellow-200');
     }
@@ -195,8 +238,10 @@ export default function StickyNoteInput({
   const handleSave = () => {
     if (content.trim() && !isClassifying) {
       setFeedback('classifying');
-      onSave(content.trim());
+      onSave(content.trim(), resolvedCategory);
       setContent('');
+      setManualCategory(null);
+      setIsTagMenuOpen(false);
       setCurrentNote(null);
       setIsEditing(true);
     }
@@ -210,6 +255,8 @@ export default function StickyNoteInput({
         setCurrentNote(null);
       }
       setContent('');
+      setManualCategory(null);
+      setIsTagMenuOpen(false);
       setIsEditing(true);
     }
   };
@@ -476,6 +523,54 @@ export default function StickyNoteInput({
       {/* 안내 텍스트 - PC와 모바일 모두 지원 */}
       <div className="absolute bottom-1 left-2 text-[11px] text-gray-500">
         {isClassifying ? 'AI 분류 중...' : `↑완료 | ↓다이어그램 | ←→삭제`}
+      </div>
+
+      {/* 중앙 하단 태그 드롭다운 (최종 태깅 파이널 터치) */}
+      <div
+        ref={tagMenuRef}
+        className="absolute left-1/2 bottom-2 z-20 -translate-x-1/2"
+        onMouseDown={(e) => e.stopPropagation()}
+        onTouchStart={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          disabled={isClassifying}
+          onClick={() => setIsTagMenuOpen((prev) => !prev)}
+          className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-bold shadow-md transition hover:opacity-90 ${categoryUI[resolvedCategory].bg} ${categoryUI[resolvedCategory].text} ${isClassifying ? 'cursor-not-allowed opacity-60' : ''}`}
+          title="태그 선택"
+        >
+          {(() => {
+            const Icon = categoryUI[resolvedCategory].Icon;
+            return <Icon className="h-4 w-4" />;
+          })()}
+          <span>{categoryUI[resolvedCategory].label}</span>
+          <ChevronDown className={`h-4 w-4 transition-transform ${isTagMenuOpen ? 'rotate-180' : ''}`} />
+        </button>
+
+        {isTagMenuOpen && !isClassifying && (
+          <div className="absolute bottom-full left-1/2 mb-2 w-44 -translate-x-1/2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-xl backdrop-blur-sm">
+            {(['To-Do', '아이디어', '메모'] as StickyNote['category'][]).map((category) => {
+              const item = categoryUI[category];
+              const Icon = item.Icon;
+              const isSelected = resolvedCategory === category;
+
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => {
+                    setManualCategory(category);
+                    setIsTagMenuOpen(false);
+                  }}
+                  className={`mb-1 flex w-full items-center gap-2 rounded-full px-3 py-2 text-left text-sm font-semibold transition last:mb-0 ${item.bg} ${item.text} ${isSelected ? 'ring-2 ring-slate-300' : 'opacity-90 hover:opacity-100'}`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* 피드백 아이콘 */}
