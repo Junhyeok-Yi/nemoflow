@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { StickyNote } from '@/lib/types';
 import { getCategoryPriority } from '@/lib/ai-categorizer';
-import { classifyTopicSmart } from '@/lib/smart-topic-extractor';
 import { Edit3, Grid, MoreVertical, Check, Trash2, X, RotateCcw } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -14,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type SortType = 'category' | 'topic' | 'time';
+type SortType = 'category' | 'time';
 
 interface AffinityDiagramProps {
   notes: StickyNote[];
@@ -36,7 +35,6 @@ export default function AffinityDiagram({
   const scrollContainerRef = useRef<HTMLElement | null>(null);
   const scrollPositionsRef = useRef<Record<SortType, number>>({
     category: 0,
-    topic: 0,
     time: 0,
   });
   
@@ -54,17 +52,6 @@ export default function AffinityDiagram({
     onNoteSelect(null);
     onSwitchToMemo();
   };
-
-  // 스마트 토픽 분류 테스트 (개발용)
-  useEffect(() => {
-    if (notes.length > 3 && process.env.NODE_ENV === 'development') {
-      // 개발 환경에서만 토픽 분류 성능 테스트
-      console.log('🧪 스마트 토픽 분류 테스트 실행');
-      import('@/lib/smart-topic-extractor').then(({ testSmartTopicExtractor }) => {
-        testSmartTopicExtractor();
-      });
-    }
-  }, [notes.length]);
 
 
   // 완료 처리 with 피드백
@@ -124,34 +111,6 @@ export default function AffinityDiagram({
     }, 300);
   };
 
-  // 스마트 토픽 추출 (컨텍스트 + 개인 패턴 기반)
-  const extractTopic = (content: string): string => {
-    // 새로운 스마트 토픽 분류기 사용
-    const result = classifyTopicSmart(content, notes);
-    return result.topic;
-  };
-
-  // 주제별 그룹화 함수 (스마트 토픽 분류 적용)
-  const groupByTopic = (notes: StickyNote[]) => {
-    return notes.reduce((acc, note) => {
-      const topic = extractTopic(note.content);
-      
-      // 개발 환경에서 토픽 분류 과정 디버깅
-      if (process.env.NODE_ENV === 'development' && Math.random() < 0.1) { // 10% 확률로 디버깅
-        import('@/lib/smart-topic-extractor').then(({ debugTopicClassification }) => {
-          debugTopicClassification(note.content, notes);
-        });
-      }
-      
-      if (!acc[topic]) {
-        acc[topic] = [];
-      }
-      acc[topic].push(note);
-      return acc;
-    }, {} as Record<string, StickyNote[]>);
-  };
-
-
   // 카테고리별 그룹화 함수
   const groupByCategory = (notes: StickyNote[]) => {
     return notes.reduce((acc, note) => {
@@ -194,11 +153,6 @@ export default function AffinityDiagram({
           return getCategoryPriority(a as 'To-Do' | '메모' | '아이디어') - getCategoryPriority(b as 'To-Do' | '메모' | '아이디어');
         });
         return { groups: sortedCategories, groupedNotes: groupedByCategory, isTimeline: false };
-      
-      case 'topic':
-        const groupedByTopic = groupByTopic(notes);
-        const sortedTopics = Object.keys(groupedByTopic).sort();
-        return { groups: sortedTopics, groupedNotes: groupedByTopic, isTimeline: false };
       
       case 'time':
         const { groupedByDate } = sortByTime(notes);
@@ -300,7 +254,7 @@ export default function AffinityDiagram({
       onClick={(e) => handleNoteClick(note, e)}
       className={`group relative aspect-square cursor-pointer transition-all duration-300 ${mobile ? 'snap-center shrink-0 w-[78vw] max-w-[340px]' : 'hover:scale-105'}`}
     >
-      <div className={`relative w-full h-full rounded-2xl shadow-lg transition-all duration-300 ${
+      <div className={`relative w-full h-full rounded-2xl shadow-none transition-all duration-300 ${
         note.color === 'yellow' ? 'bg-gradient-to-br from-amber-100 via-orange-200 to-rose-300' :
         note.color === 'pink' ? 'bg-gradient-to-br from-fuchsia-100 via-violet-200 to-indigo-300' :
         note.color === 'blue' ? 'bg-gradient-to-br from-sky-100 via-blue-200 to-indigo-300' :
@@ -388,7 +342,7 @@ export default function AffinityDiagram({
       <header className="w-full border-b border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-5">
           {/* 탭 네비게이션 */}
-          <nav className="grid grid-cols-3 gap-2 bg-gray-100 rounded-xl p-2 w-full">
+          <nav className="grid grid-cols-2 gap-2 bg-gray-100 rounded-xl p-2 w-full">
             <button
               onClick={() => switchTab('category')}
               className={`touch-manipulation px-3 md:px-5 py-3.5 md:py-3.5 rounded-lg transition-all text-sm font-medium text-center ${
@@ -398,16 +352,6 @@ export default function AffinityDiagram({
               }`}
             >
               Categories
-            </button>
-            <button
-              onClick={() => switchTab('topic')}
-              className={`touch-manipulation px-3 md:px-5 py-3.5 md:py-3.5 rounded-lg transition-all text-sm font-medium text-center ${
-                sortType === 'topic'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-            >
-              Topics
             </button>
             <button
               onClick={() => switchTab('time')}
@@ -497,7 +441,7 @@ export default function AffinityDiagram({
                       <Grid className="w-8 h-8 text-gray-400" />
                     </div>
                     <p className="text-gray-600 text-base md:text-lg">
-                      이 {sortType === 'category' ? '카테고리' : sortType === 'topic' ? '주제' : '날짜'}에는 아직 메모가 없습니다.
+                      이 {sortType === 'category' ? '카테고리' : '날짜'}에는 아직 메모가 없습니다.
                     </p>
                   </div>
                 )}
