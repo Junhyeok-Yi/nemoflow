@@ -57,6 +57,8 @@ export default function StickyNoteInput({
   const tagMenuRef = useRef<HTMLDivElement>(null);
   const [manualCategory, setManualCategory] = useState<StickyNote['category'] | null>(null);
   const [isTagMenuOpen, setIsTagMenuOpen] = useState(false);
+  const [isTagUiMounted, setIsTagUiMounted] = useState(false);
+  const [isTagUiVisible, setIsTagUiVisible] = useState(false);
 
   const getAutoDetectedCategory = (): StickyNote['category'] => {
     if (content.trim()) return categorizeForPreview(content);
@@ -65,6 +67,7 @@ export default function StickyNoteInput({
   };
 
   const resolvedCategory = manualCategory ?? getAutoDetectedCategory();
+  const isActiveInput = (isFocused || isTagMenuOpen) && !isClassifying;
 
   const categoryUI: Record<StickyNote['category'], { label: string; bg: string; text: string; Icon: typeof ListTodo }> = {
     'To-Do': {
@@ -236,6 +239,28 @@ export default function StickyNoteInput({
       setIsTagMenuOpen(false);
     }
   }, [isFocused, isTagMenuOpen, isClassifying]);
+
+  useEffect(() => {
+    let showTimer: ReturnType<typeof setTimeout> | null = null;
+    let hideTimer: ReturnType<typeof setTimeout> | null = null;
+
+    if (isActiveInput) {
+      setIsTagUiMounted(true);
+      showTimer = setTimeout(() => {
+        setIsTagUiVisible(true);
+      }, 320);
+    } else {
+      setIsTagUiVisible(false);
+      hideTimer = setTimeout(() => {
+        setIsTagUiMounted(false);
+      }, 180);
+    }
+
+    return () => {
+      if (showTimer) clearTimeout(showTimer);
+      if (hideTimer) clearTimeout(hideTimer);
+    };
+  }, [isActiveInput]);
 
 
 
@@ -483,8 +508,6 @@ export default function StickyNoteInput({
     );
   }
 
-  const isActiveInput = (isFocused || isTagMenuOpen) && !isClassifying;
-
   return (
     <div className={`min-h-screen flex items-center justify-center ${isActiveInput ? 'p-2 md:p-5' : 'p-5'} bg-gray-50 overscroll-none`}>
       <div
@@ -524,11 +547,11 @@ export default function StickyNoteInput({
         disabled={isClassifying}
       />
       
-      {/* 중앙 하단 태그 드롭다운 (최종 태깅 파이널 터치) */}
-      {isActiveInput && (
+      {/* 중앙 하단 태그 드롭다운 (포스트잇 확장 완료 후 페이드 인) */}
+      {isTagUiMounted && (
         <div
           ref={tagMenuRef}
-          className="absolute left-1/2 bottom-2 z-20 -translate-x-1/2"
+          className={`absolute left-1/2 bottom-2 z-20 -translate-x-1/2 transition-opacity duration-200 ease-out ${isTagUiVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
           onPointerDown={(e) => {
             e.preventDefault();
             e.stopPropagation();
