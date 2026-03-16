@@ -3,6 +3,10 @@
 ## 목적
 주간 개발/PM/QA 리듬을 고정하고, 의사결정 채널(HQ)과 실행 채널(dev/qa/alert)을 분리한다.
 
+## PRD 소스 오브 트루스
+- 최신 PRD: https://www.notion.so/joshyi/nemoflow-PRD-310b65c6355480aa9dc6d9e5acfdd84b
+- 기능 구현/우선순위/수용기준은 위 PRD 기준으로 판단한다.
+
 ## 채널 역할
 - HQ: 오너 의사결정/승인 필요 건만 보고
 - alert: 진행/지연/리스크/복구 알림

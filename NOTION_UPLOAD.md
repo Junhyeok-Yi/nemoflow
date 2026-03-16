@@ -19,7 +19,7 @@ npm run notion:upload-prd
 Optional title:
 
 ```bash
-npm run notion:upload-prd -- "Post-things PRD — Phase 1"
+npm run notion:upload-prd -- "nemoflow PRD"
 ```
 
 ## 3) Troubleshooting
