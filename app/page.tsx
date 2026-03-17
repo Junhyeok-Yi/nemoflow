@@ -57,13 +57,20 @@ export default function Home() {
       }
       const session = (json as { activeSession?: MeetingSession | null } | null)?.activeSession ?? null;
       setActiveMeeting(session);
-      setMeetingMode(Boolean(session));
+      // UX 정책: 새로고침 진입 기본값은 항상 OFF
+      setMeetingMode(false);
     } catch (error) {
       console.error('활성 회의 조회 실패:', error);
     }
   };
 
   const startMeetingMode = async () => {
+    // 새로고침 직후 OFF 상태에서도 서버에 활성 세션이 있으면 재사용
+    if (activeMeeting?.id) {
+      setMeetingMode(true);
+      return;
+    }
+
     const title = `회의 ${new Date().toLocaleString()}`;
     const res = await fetch('/api/meetings/start', {
       method: 'POST',
