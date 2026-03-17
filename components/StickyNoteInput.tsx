@@ -63,8 +63,9 @@ export default function StickyNoteInput({
   const [isTagUiVisible, setIsTagUiVisible] = useState(false);
 
   const getAutoDetectedCategory = (): StickyNote['category'] => {
-    if (content.trim()) return categorizeForPreview(content);
+    // 기존 노트 편집 시에는 태그를 자동 재분류하지 않고, 원래 카테고리를 기본 유지
     if (currentNote?.category) return currentNote.category;
+    if (content.trim()) return categorizeForPreview(content);
     return '메모';
   };
 
