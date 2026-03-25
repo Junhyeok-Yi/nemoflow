@@ -244,12 +244,14 @@ export default function StickyNoteInput({
     }
   }, [isFocused, isTagMenuOpen]);
 
-  // 태그 UI는 입력 시작(isFocused)할 때만 표시
+  // 태그 UI는 실제 타이핑(content 있음)할 때만 표시
   useEffect(() => {
     let showTimer: ReturnType<typeof setTimeout> | null = null;
     let hideTimer: ReturnType<typeof setTimeout> | null = null;
 
-    if (isFocused && !isClassifying) {
+    const shouldShowTag = content.length > 0 && !isClassifying;
+
+    if (shouldShowTag) {
       setIsTagUiMounted(true);
       showTimer = setTimeout(() => {
         setIsTagUiVisible(true);
@@ -265,7 +267,7 @@ export default function StickyNoteInput({
       if (showTimer) clearTimeout(showTimer);
       if (hideTimer) clearTimeout(hideTimer);
     };
-  }, [isFocused, isClassifying]);
+  }, [content, isClassifying]);
 
 
 
