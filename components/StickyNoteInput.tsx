@@ -237,11 +237,12 @@ export default function StickyNoteInput({
     }
   }, [feedback]);
 
+  // 포커스 해제 시 태그 메뉴 닫기
   useEffect(() => {
-    if ((!isFocused && !isTagMenuOpen) || isClassifying) {
+    if (!isFocused && isTagMenuOpen) {
       setIsTagMenuOpen(false);
     }
-  }, [isFocused, isTagMenuOpen, isClassifying]);
+  }, [isFocused, isTagMenuOpen]);
 
   // 태그 UI는 입력 시작(isFocused)할 때만 표시
   useEffect(() => {
@@ -557,7 +558,7 @@ export default function StickyNoteInput({
         disabled={isClassifying}
       />
       
-      {/* 중앙 하단 태그 드롭다운 (포스트잇 확장 완료 후 페이드 인) */}
+      {/* 중앙 하단 태그 드롭다운 (입력 시작 후에만 표시) */}
       {isTagUiMounted && (
         <div
           ref={tagMenuRef}
@@ -569,9 +570,9 @@ export default function StickyNoteInput({
         >
           <button
             type="button"
-            disabled={isClassifying}
+            disabled={isClassifying || !isTagUiVisible}
             onClick={() => setIsTagMenuOpen((prev) => !prev)}
-            className={`inline-flex items-center gap-2 rounded-full border border-black/10 px-3 py-1.5 text-sm font-bold transition hover:opacity-90 ${categoryUI[resolvedCategory].bg} ${categoryUI[resolvedCategory].text} ${isClassifying ? 'cursor-not-allowed opacity-60' : ''}`}
+            className={`inline-flex items-center gap-2 rounded-full border border-black/10 px-3 py-1.5 text-sm font-bold transition hover:opacity-90 ${categoryUI[resolvedCategory].bg} ${categoryUI[resolvedCategory].text} ${isClassifying || !isTagUiVisible ? 'cursor-not-allowed opacity-60' : ''}`}
             title="태그 선택"
           >
             {(() => {
