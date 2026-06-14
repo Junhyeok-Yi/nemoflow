@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import TimelineDeck from "@/components/TimelineDeck";
 
 export type SortType = 'category' | 'time';
 
@@ -346,8 +347,20 @@ export default function AffinityDiagram({
 
   return (
     <div className="min-h-screen bg-white text-gray-900 relative">
-      {/* 🎨 M2Z1 스타일 헤더 영역 (화이트 배경 최적화) */}
-      <header className="w-full border-b border-gray-200 bg-white">
+      {/* 모바일: 시간 축 카드 덱 (데스크탑은 아래 탭+그리드 사용) */}
+      {notes.length > 0 && (
+        <div className="md:hidden">
+          <TimelineDeck
+            notes={notes}
+            onNoteSelect={onNoteSelect}
+            onSwitchToMemo={onSwitchToMemo}
+            onCreateNew={handleNewMemo}
+          />
+        </div>
+      )}
+
+      {/* 🎨 M2Z1 스타일 헤더 영역 (화이트 배경 최적화) — 데스크탑 전용 */}
+      <header className="hidden md:block w-full border-b border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-5">
           {/* 탭 네비게이션 */}
           <nav className="grid grid-cols-2 gap-2 bg-gray-100 rounded-xl p-2 w-full">
@@ -397,7 +410,7 @@ export default function AffinityDiagram({
           onScroll={(e) => {
             scrollPositionsRef.current[sortType] = e.currentTarget.scrollTop;
           }}
-          className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-6 h-[calc(100vh-140px)] md:h-auto overflow-y-auto md:overflow-visible touch-pan-y snap-y snap-proximity md:snap-none"
+          className="hidden md:block max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-6 h-[calc(100vh-140px)] md:h-auto overflow-y-auto md:overflow-visible touch-pan-y snap-y snap-proximity md:snap-none"
         >
           {groups.map((group) => {
             const groupNotes = groupedNotes[group];
@@ -459,8 +472,8 @@ export default function AffinityDiagram({
         </main>
       )}
 
-      {/* 🎨 M2Z1 스타일 플로팅 액션 버튼 (라이트 모드) */}
-      <div className="fixed bottom-6 right-6 z-20">
+      {/* 🎨 M2Z1 스타일 플로팅 액션 버튼 (라이트 모드) — 데스크탑 전용 (모바일은 덱 오버스크롤로 생성) */}
+      <div className="hidden md:block fixed bottom-6 right-6 z-20">
         <button
           onClick={handleNewMemo}
           className="group relative w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl shadow-xl hover:shadow-2xl transform hover:scale-110 transition-all duration-300 flex items-center justify-center"

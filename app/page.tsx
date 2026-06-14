@@ -142,6 +142,41 @@ export default function Home() {
           const savedNotes = localStorage.getItem('sticky-notes');
           if (savedNotes) {
             setNotes(JSON.parse(savedNotes));
+          } else {
+            // 처음 방문 시 시드 데이터 주입 (이전 날 7개 + 오늘 30개 밀집 테스트)
+            const now = Date.now();
+            const day = 86400000;
+            const todayStart = new Date(new Date().toDateString()).getTime(); // 오늘 00:00
+            const sampleContents = [
+              '스탠드업 미팅 준비', '버그 수정: 로그인 플로우', '다크모드 UX 검토',
+              '디자인 시스템 업데이트', 'API 응답 속도 개선', '사용자 피드백 정리',
+              'PR 리뷰 완료', '아키텍처 문서 작성', '테스트 커버리지 확인', '배포 체크리스트',
+            ];
+            const cats: StickyNote['category'][] = ['To-Do', '아이디어', '메모'];
+            const colors: StickyNote['color'][] = ['green', 'blue', 'yellow'];
+            const histNotes: StickyNote[] = [
+              { id: `seed-h0`, content: '우유, 계란, 두부 사기', category: 'To-Do', color: 'green', createdAt: new Date(now - 6 * day).toISOString(), updatedAt: new Date(now - 6 * day).toISOString(), isCompleted: false, meetingSessionId: null },
+              { id: `seed-h1`, content: '다음 스프린트 기능 목록 정리', category: '메모', color: 'yellow', createdAt: new Date(now - 5 * day).toISOString(), updatedAt: new Date(now - 5 * day).toISOString(), isCompleted: false, meetingSessionId: null },
+              { id: `seed-h2`, content: '앱에 다크모드 추가하면 어떨까?', category: '아이디어', color: 'blue', createdAt: new Date(now - 4 * day).toISOString(), updatedAt: new Date(now - 4 * day).toISOString(), isCompleted: false, meetingSessionId: null },
+              { id: `seed-h3`, content: '치과 예약 화요일 3시', category: 'To-Do', color: 'green', createdAt: new Date(now - 3 * day).toISOString(), updatedAt: new Date(now - 3 * day).toISOString(), isCompleted: false, meetingSessionId: null },
+              { id: `seed-h4`, content: '온보딩 플로우 개선 아이디어', category: '아이디어', color: 'blue', createdAt: new Date(now - 2 * day).toISOString(), updatedAt: new Date(now - 2 * day).toISOString(), isCompleted: false, meetingSessionId: null },
+              { id: `seed-h5`, content: '디자인 레퍼런스 모아두기', category: '메모', color: 'yellow', createdAt: new Date(now - 1 * day).toISOString(), updatedAt: new Date(now - 1 * day).toISOString(), isCompleted: false, meetingSessionId: null },
+              { id: `seed-h6`, content: '어제 회의 액션 아이템', category: '메모', color: 'yellow', createdAt: new Date(now - 1 * day + 3600000).toISOString(), updatedAt: new Date(now - 1 * day + 3600000).toISOString(), isCompleted: false, meetingSessionId: null },
+            ];
+            // 오늘 30개: 00:00부터 30분 간격
+            const todayNotes: StickyNote[] = Array.from({ length: 30 }, (_, i) => ({
+              id: `seed-t${i}`,
+              content: sampleContents[i % sampleContents.length],
+              category: cats[i % 3],
+              color: colors[i % 3],
+              createdAt: new Date(todayStart + i * 30 * 60000).toISOString(),
+              updatedAt: new Date(todayStart + i * 30 * 60000).toISOString(),
+              isCompleted: false,
+              meetingSessionId: null,
+            }));
+            const seedNotes = [...histNotes, ...todayNotes];
+            localStorage.setItem('sticky-notes', JSON.stringify(seedNotes));
+            setNotes(seedNotes);
           }
         }
       } catch (error) {
