@@ -12,7 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import TimelineDeck from "@/components/TimelineDeck";
 
 export type SortType = 'category' | 'time';
 
@@ -347,18 +346,6 @@ export default function AffinityDiagram({
 
   return (
     <div className="min-h-screen bg-white text-gray-900 relative">
-      {/* 모바일: 시간 축 카드 덱 (데스크탑은 아래 탭+그리드 사용) */}
-      {notes.length > 0 && (
-        <div className="md:hidden">
-          <TimelineDeck
-            notes={notes}
-            onNoteSelect={onNoteSelect}
-            onSwitchToMemo={onSwitchToMemo}
-            onCreateNew={handleNewMemo}
-          />
-        </div>
-      )}
-
       {/* 🎨 M2Z1 스타일 헤더 영역 (화이트 배경 최적화) — 데스크탑 전용 */}
       <header className="hidden md:block w-full border-b border-gray-200 bg-white">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-3 md:py-5">
@@ -441,14 +428,6 @@ export default function AffinityDiagram({
                       </>
                     )}
                   </div>
-                </div>
-
-                {/* Mobile: 1x1 horizontal snap lane */}
-                <div className="md:hidden relative">
-                  <div className="flex gap-4 overflow-x-auto overflow-y-visible pb-4 pr-6 snap-x snap-mandatory">
-                    {groupNotes.map((note) => renderNoteCard(note, group, true, isTimeline))}
-                  </div>
-                  <div className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-white to-transparent" />
                 </div>
 
                 {/* Desktop: existing grid */}
