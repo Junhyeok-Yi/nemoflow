@@ -251,7 +251,7 @@ export default function AffinityDiagram({
       ? meetingLabelBySessionId[note.meetingSessionId] ?? '회의'
       : null;
 
-    const timelineTypeLabel = note.category === 'To-Do' ? 'to-do' : 'memo';
+    const timelineTypeLabel = note.category === 'To-Do' ? 'to-do' : note.category === '아이디어' ? 'idea' : 'memo';
     const timelineMetaLabel = note.meetingSessionId
       ? `${timelineTypeLabel} · 회의`
       : timelineTypeLabel;
